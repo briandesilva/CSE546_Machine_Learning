@@ -1,0 +1,182 @@
+\documentclass{article}
+
+\usepackage{fancyhdr}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{caption,subcaption}
+\usepackage{subfig}
+\usepackage{enumerate}          % For enumerates indexed by letters
+\usepackage{bm}                 % For bold letters
+\usepackage{algorithm2e}        % For pseudocode
+
+%
+% Basic Document Settings
+%
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+\pagestyle{fancy}
+\lhead{\hmwkAuthorName}
+\chead{\hmwkClass:\ \hmwkTitle}
+\rhead{\firstxmark}
+\lfoot{\lastxmark}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\setlength\parindent{0pt}
+
+\setcounter{section}{-1}
+
+
+
+
+%
+% Homework Details
+%   - Title
+%   - Due date
+%   - Class
+%   - Section/Time
+%   - Instructor
+%   - Author
+%
+
+\newcommand{\hmwkTitle}{Homework 3}
+\newcommand{\hmwkDueDate}{November ***, 2016}
+\newcommand{\hmwkClass}{CSE 546}
+\newcommand{\hmwkAuthorName}{Brian de Silva}
+
+%
+% Title Page
+%
+
+\title{
+    \vspace{2in}
+    \textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+    \normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate\ }\\
+    \vspace{3in}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+\date{}
+
+
+% Useful commands
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Bias}{\mathrm{Bias}}
+\newcommand{\bbm}{\begin{bmatrix}}
+\newcommand{\ebm}{\end{bmatrix}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\y}{\hat \bm{y}}
+\newcommand{\yi}{\hat \bm{y_i}}
+\newcommand{\X}{\bm{X}}
+\newcommand{\w}{\bm{w}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\Tr}{\mathrm{Tr}}
+
+
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+% Problem 0
+\section{Collaborators and Acknowledgements}
+
+
+% Problem 1
+\section{PCA and reconstruction}
+\subsection{Matrix Algebra Review}
+\begin{enumerate}
+	\item Recall that for $A\in\R^{n\times d}$ and $C\in\R^{d\times n}$, $(AC)_{ij} = \sum^d_{k=1}a_{ik}c_{kj}$. Also, $(B^T)_{ij} = B_{ji}$. Hence
+	\[
+		(AB^T)_{ij} = \sum^d_{i=1}(A)_{ik}(B^T)_{jk} = \sum^d_{i=1}a_{ik}b_{kj}.
+	\]
+
+	Plugging this into the definition of the trace gives
+	\begin{align*}
+		\Tr(AB^T) &= \sum^n_{i=1}\left(\sum^d_{k=1}(AB^T)_{ii}\right)\\
+		&= \sum^n_{i=1}\left(\sum^d_{k=1}a_{ik}b_{ik}\right).
+	\end{align*}
+	Similarly,
+	\[
+		(B^TA)_{ij} = \sum^{n}_{k=1}b_{ki}a_{kj}
+	\]
+	and, by switching the order of addition,
+	\begin{align*}
+		\Tr(B^TA) &= \sum^d_{i=1}\left(B^TA\right)_{ii}\\
+		&= \sum^d_{i=1}\left(\sum^n_{k=1}b_{ki}a_{ki} \right) \\
+		&= \sum^n_{i=1}\left(\sum^d_{k=1}b_{ki}a_{ki} \right) \\
+		&= \Tr(AB^T).
+	\end{align*}
+
+	\item The outer equality follows from the definition of the trace:
+	\begin{align*}
+		\Tr(\Sigma) = \Tr\left(\tfrac1nX^TX\right) = \frac1n\sum^d_{i=1}(X^TX)_{ii} &= \frac1n \sum^d_{i=1}\left( \sum^n_{k=1}x_{ik}^2 \right)\\
+		&= \frac1n\sum^d_{i=1}\|X_i\|^2.
+	\end{align*}
+	For the other equality, we need some standard linear algebra results. Since $\Sigma$ is symmetric and real, it has a real orthogonal eigendecomposition. That is to say, there exists an orthogonal matrix $Q$ and a diagonal matrix $\Lambda$ with diagonal entries $\lambda_1,\lambda_2,\dots,\lambda_d$ such that
+	\[
+		\Sigma = Q\Lambda Q^T.
+	\]
+	Using our result from part 1, we have
+	\[
+		\Tr(\Sigma) = \Tr\left(Q\Lambda Q^T\right) = \Tr\left((Q\Lambda) Q^T\right) = \Tr\left(Q^TQ\Lambda\right) = \Tr(\Lambda) = \sum^d_{i=1}\lambda_i.
+	\]
+\end{enumerate}
+
+% Problem 3
+\section{SVMs: Hinge loss and mistake bounds}
+\begin{enumerate}
+	\item To show that $\ell((x,y),w)=\max\{0,1-w\cdot x\}$ is convex with respect to $w$, we will need two observations. First, for any $a,k\in\R$ with $k\geq 0$, we have that
+	\[
+		\max\{0,ka\} = k\max\{0,a\}.
+	\]
+	In the case $ka<0$, both sides of the equality are 0. If $ka\geq 0$, then $a\geq0$ and the equality still holds. Next, for any $a,b\in\R$, we have
+	\[
+		\max\{0,a+b\}\leq \max\{0,a\}+\max\{0,b\}.
+	\]
+	If both $a$ and $b$ are negative, then the above is an equality. If exactly one of $a$ and $b$ is negative and $a+b\leq0$ then the inequality clearly holds. If both are nonnegative then it is also an equality.
+	\vskip 0.1cm
+	Recall that a function $f$ is convex if for any $t\in[0,1]$ and for any $x,y$ in its domain, $f(tx+(1-t)y)\leq tf(x)+(1-t)f(y)$. We will show that $\ell((x,y),w)$ has this property with respect to $w$. Let $w_1,w_2\in\R^d$ be arbitrary and let $t\in[0,1]$. Then $0\leq(1-t)\leq1$, and so
+	\begin{align*}
+		\ell\left((x,y),tw_1+(1-t)w_2\right) &= \max\{0,1-y(tw_1+(1-t)w_2)\cdot x\}\\
+		&= \max\{0,1-tyw_1\cdot x-(1-t)yw_2\cdot x \}\\
+		&= \max\{0,1+(t-t)-tyw_1\cdot x-(1-t)yw_2\cdot x \}\\
+		&= \max\{0,[t-tyw_1\cdot x] + [(1-t)-(1-t)yw_2\cdot x] \}\\
+		&\leq \max\{0,t-tyw_1\cdot x\}+\max\{(1-t)-(1-t)`yw_2\cdot x \}\\
+		&= t\max\{0,1-yw_1\cdot x\}+(1-t)\max\{1-yw_2\cdot x \}\\
+		&= t\ell((x,y),w_1)+(1-t)\ell((x,y),w_2).
+	\end{align*}
+	Therefore $\ell((x,y),w)$ is convex with respect to $w$.
+	\item By its definition it is clear that $0\leq\ell((x,y),w)$. If $y_i=\mathrm{sgn}(w\cdot x_i)$ then $y_iw\cdot x_i\geq 0$, implying that $1- y_iw\cdot x_i\leq 1$. Hence $\ell((x_i,y_i),w)=\max\{0,1-y_iw\cdot x_i\}\leq 1$. Combining these bounds we get
+	\[
+		0\leq \ell((x_i,y_i),w)\leq 1
+	\]
+	for correctly classified points.
+	\item Observe that if we misclassify a point (so that $y_i=-\mathrm{sgn}(w\cdot x_i)$) then $y_iw\cdot x_i\geq0$. Hence $\ell((x_i,y_i),w)\geq 1$ for misclassified points. Let $I\subset \{1,2,\dots,n\}$ be the indices corresponding to the data points which $w$ misclassifies. It follows that $|I|=M(w)$. By the previous part we know that for correct classifications the hinge loss is bounded between 0 and 1. Putting this all together we obtain
+	\[
+		M(w) = \sum_{i=1}^{M(w)}1 = \sum_{i\in I}1 \leq \sum_{i\in I}\ell((x_i,y_i),w)\leq\sum^n_{i=1}\ell((x_i,y_i),w)= \sum^n_{i=1}\max\{0,1-y_iw\cdot x_i\}.
+	\]
+	Dividing both sides by $n$ gives the desired result.
+\end{enumerate}
+
+
+
+\end{document}
+

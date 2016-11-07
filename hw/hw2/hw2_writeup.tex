@@ -1,0 +1,402 @@
+\documentclass{article}
+
+\usepackage{fancyhdr}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{caption,subcaption}
+\usepackage{subfig}
+\usepackage{enumerate}          % For enumerates indexed by letters
+\usepackage{bm}                 % For bold letters
+\usepackage{algorithm2e}        % For pseudocode
+
+%
+% Basic Document Settings
+%
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+\pagestyle{fancy}
+\lhead{\hmwkAuthorName}
+\chead{\hmwkClass:\ \hmwkTitle}
+\rhead{\firstxmark}
+\lfoot{\lastxmark}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\setlength\parindent{0pt}
+
+\setcounter{section}{-1}
+
+
+
+
+%
+% Homework Details
+%   - Title
+%   - Due date
+%   - Class
+%   - Section/Time
+%   - Instructor
+%   - Author
+%
+
+\newcommand{\hmwkTitle}{Homework 2}
+\newcommand{\hmwkDueDate}{October 31, 2016}
+\newcommand{\hmwkClass}{CSE 546}
+\newcommand{\hmwkAuthorName}{Brian de Silva}
+
+%
+% Title Page
+%
+
+\title{
+    \vspace{2in}
+    \textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+    \normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate\ }\\
+    \vspace{3in}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+\date{}
+
+
+% Useful commands
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Bias}{\mathrm{Bias}}
+\newcommand{\bbm}{\begin{bmatrix}}
+\newcommand{\ebm}{\end{bmatrix}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\y}{\hat \bm{y}}
+\newcommand{\yi}{\hat \bm{y_i}}
+\newcommand{\X}{\bm{X}}
+\newcommand{\w}{\bm{w}}
+\newcommand{\T}{\mathcal{T}}
+
+
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+\section{Collaborators and Acknowledgements}
+\begin{itemize}
+	\item I collaborated with Kathleen Champion on all of the problems and I collaborated with Matthew Farrell on problem 3.
+	\item I referenced \textit{Numerical Linear Algebra} by Trefethen and Bau to find the computational complexity of the QR-factorization.
+\end{itemize}
+
+% Problem 1
+\section{Multi-Class Classification using Least Squares}
+\subsection{One vs all classification}
+\begin{enumerate}
+	\item Recall that if $X$ is the matrix of images, and $y$ is the vector of (binary) labels, the least squares solution is given by
+	\[
+		\hat w = (X^TX)^{-1}X^Ty.
+	\]
+	The approximation is then $\hat y = X\hat w$. First, computing $X^TX$ costs $\mathcal{O}(nd^2)$ operations (it has $d^2$ entries, each of which is the dot product of two length $n$ vectors--these each require $2n-1$ floating point operations). Next, $X^Ty$ has $d$ entries, each of which is a dot product between two vectors in $\R^n$. Therefore this computation is $\mathcal{O}(nd)$. ``Inverting'' $X^TX$, or solving $X^TX z = X^y$ costs $\mathcal{O}(d^3)$ operations because $X^TX$ is a $d\times d$ matrix. Hence the total cost of finding the weight vector $\hat w$ for one linear regression problem is $\mathcal{O}(nd^2+d^3+nd)=\mathcal{O}(nd^2+d^3)$. Since we expect that $n>d$, this is really $\mathcal{O}(nd^2)$. If we solved all $k$ problems independently the total complexity would be $\mathcal{O}(knd^2)$.
+	\item The most expensive computations of the problem only need to be performed once. We saw that the cost of solving the linear regression problem is dominated by the computation and inversion of $X^TX$. Each of the $k$ problems, if solved independently, requires these same steps. Rather than carrying out these operations separately, we can simply compute the (reduced) QR-factorization of $X$ once, $X=QR$, at a cost of $\mathcal{O}(nd^2)$ floating point operations, then use it to find the weight vectors of each of the binary regression problems. For the $i$-th class, let $y^i$ be the binary labels and let $\hat w^i$ be the weight vector we wish to find. Then $\hat w^i$ can be obtained as the solution to
+	\[
+		R\hat w^i = Q^T y^i.
+	\]
+	Since $R$ is upper-triangular, solving this system costs only $\mathcal{O}(d^2)$ operations. The multiplication $Q^Ty^i$ costs $\mathcal{O}(nd)$ operations. If we store $Q$ and $R$ and use them to solve each of the $k$ problems, then our total cost is $\mathcal{O}(nd^2+dkn + kd^2)=\mathcal{O}(nd^2+dkn)$, which is much better than the $\mathcal{O}(knd^2)$ operations required to solve them each on their own.
+
+	If we wished to use ridge-regression, we could use the same regularization parameter $\lambda$ for each problem and instead perform an LU-decomposition on $X^TX+\lambda I$, which we could then re-use for all the binary problems. This raises the cost by a constant times $nd^2$ since we must also compute $X^TX$ in this case.
+	\item Using the multiclass algorithm described above with a regularization parameter of $\lambda \approx 0.0835$ we obtain a 0/1 loss of 14.806667 percent incorrect (8884 / 60000 misclassifications) and a mean square loss of 0.391004  on the training set. On the test set our 0/1 loss was 14.660000 percent incorrect (1466 / 10000 misclassifications) and our mean square loss was 0.395191. The code for this problem can be found in \texttt{hw2-1.py}.
+\end{enumerate}
+
+\pagebreak
+\subsection{Neural Nets with a random first layer: using more features}
+\begin{enumerate}
+	\item Using the same regularization parameter as above, $\lambda \approx 0.0835$, on our training set our 0/1 loss was 0.676667 percent incorrect (406 / 60000 misclassifications) and our mean square loss was 0.079238. On the test set our 0/1 loss was 2.330000 percent incorrect (233 / 10000 misclassifications) and our mean square loss was 0.122706. The code for this problem can be found in \texttt{hw2-1.py}.
+\end{enumerate}
+
+% Problem 2
+\section{Multi-Class Classification using Logistic Regression and Softmax}
+\subsection{Binary Logistic Regression}
+\begin{enumerate}
+	\item After lots of experimenting I used a constant learning rate of $10^{-5}$. My regularization constant was simply $\lambda = 1$ and I used an unregularized offset weight $w_0$.
+
+	\begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{logLoss1e-5_bin_LReg}
+        \caption{Log loss on training and test sets for binary logistic regression using batch gradient descent} 
+        \label{fig:2.1}
+    \end{figure}
+
+	\item Figure \ref{fig:2.1} shows the decay of the log loss on the training and test sets as a function of iteration of (batch) gradient descent. At first the log loss is lower on the test set than the training set, suggesting that the model is still underfitting the training data. Eventually the log loss on the training data drops below that of the test set.
+	\item Using a threshold of 0.5 for classification, my final losses on the training set are log loss: 0.079540 and 0/1 loss: 2.228333 percent incorrect (1337 / 60000 misclassifications). The final losses on the test set are log loss: 0.081172 and 0/1 loss: 2.060000 percent incorrect (206 / 10000 misclassifications). The code for this problem can be found in \texttt{hw2-2-1.py}.
+\end{enumerate}
+
+\subsection{Softmax classification: gradient descent}
+\begin{enumerate}
+	\item The negative log likelihood function consists of a sum of logs of two types of probabilities. We will distinguish between the two cases initially, then it will turn out that we can unify them in one compact formula. For $Y>0$
+	\[
+		\log(\mathrm{Pr}(Y=\ell|x,w)) = \log\left( \frac{\exp(w^{(\ell)}\cdot x)}{1+\sum^{k-1}_{i=1}\exp(w^{(i)}\cdot x)} \right) = w^{(\ell)}\cdot x - \log\left( 1+\sum^{k-1}_{i=1}\exp(w^{(i)}\cdot x)\right).
+	\]
+	Similarly, if $Y=0$, then 
+	\[
+		\log(\mathrm{Pr}(Y=0|x,w)) = - \log\left( 1+\sum^{k-1}_{i=1}\exp(w^{(i)}\cdot x)\right).
+	\]
+	Taking derivatives with respect to each of the weight vectors gives, for $Y>0$
+	\begin{align*}
+		\frac{\partial}{\partial w^{(j)}}\left(\log(\mathrm{Pr}(Y=\ell|x,w))\right) &= \frac{\partial}{\partial w^{(j)}}\left( w^{(\ell)}\cdot x - \log\left( 1+\sum^{k-1}_{i=1}\exp(w^{(i)}\cdot x)\right)\right)\\
+		&=x\bm{1}(j=\ell) - \frac{x\exp(w^{(j)})}{1+\sum^{k-1}_{i=1}\exp(w^{(i)}\cdot x} \\
+		&= x\left(\bm{1}(j=\ell) - \frac{\exp(w^{(j)})}{1+\sum^{k-1}_{i=1}\exp(w^{(i)}\cdot x}\right)\\
+		&= x\left(\bm{1}(j=\ell) - P(Y=\ell|x,w)\right).
+	\end{align*}
+	For $Y=0$, we just lose the indicator function term and get
+	\[
+		\frac{\partial}{\partial w^{(j)}}\left(\log(\mathrm{Pr}(Y=0|x,w))\right) = -xP(Y=j|x,w).
+	\]
+	Combining both cases together and taking the full gradient (derivative with respect to $w = (w^{(1)},w^{(2)},\dots,w^{(k-1)})^T$), we obtain the following
+	\[
+		\frac{\partial}{\partial w}\left(\log(\mathrm{Pr}(Y=y^{(i)}|x^{(i)},w))\right) =
+		\bbm	x^{(i)}\left(\bm{1}(y^{(i)}=1)-\mathrm{Pr}(y^{(i)}=1|x^{(i)},w) \right)\\
+				x^{(i)}\left(\bm{1}(y^{(i)}=2)-\mathrm{Pr}(y^{(i)}=2|x^{(i)},w) \right)\\
+				\vdots \\
+				x^{(i)}\left(\bm{1}(y^{(i)}=k-1)-\mathrm{Pr}(y^{(i)}=k-1|x^{(i)},w) \right)
+		\ebm.
+	\]
+
+	Hence the gradient of the negative log likelihood function is
+	\begin{align*}
+		\nabla_w L(w) &= -\frac1N\sum^N_{i=1}\frac{\partial}{\partial w}\log\mathrm{Pr}\left(Y=y^{(i)}|x^{(i)},w\right)\\
+		&= -\frac1N\sum^N_{i=1}\bbm	x^{(i)}\left(\bm{1}(y^{(i)}=1)-\mathrm{Pr}(y^{(i)}=1|x^{(i)},w) \right)\\
+				x^{(i)}\left(\bm{1}(y^{(i)}=2)-\mathrm{Pr}(y^{(i)}=2|x^{(i)},w) \right)\\
+				\vdots \\
+				x^{(i)}\left(\bm{1}(y^{(i)}=k-1)-\mathrm{Pr}(y^{(i)}=k-1|x^{(i)},w) \right)
+		\ebm.
+	\end{align*}
+
+
+	\item For my impelmentation of batch gradient descent see \texttt{hw2-2-2.py}. For this problem I used a constant learning rate of $10^{-4} / 8$, no offset, an initial guess of all zero weights, and a regularization parameter $\lambda=1$.
+
+	\begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{logLoss_MClass_LReg_GD}
+        \caption{Log loss on training and test sets for multiclass logistic regression using batch gradient descent} 
+        \label{fig:2.2log}
+    \end{figure}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{z1Loss_MClass_LReg_GD}
+        \caption{0/1 loss on training and test sets for multiclass logistic regression using batch gradient descent} 
+        \label{fig:2.2z1}
+    \end{figure}
+
+	\item Figure \ref{fig:2.2log} plots the log loss of my multiclass logistic regression algorithm on the training and test sets as a function of gradient descent iterations. Figure \ref{fig:2.2z1} plots the 0/1 loss as gradient descent chugs along.
+
+	\item On the training set my final log loss was 0.288508 and my final 0/1 loss was 7.9133 percent incorrect. On the test set my final log loss was 0.288230 and my final 0/1 loss was 7.8300 percent incorrect.
+
+	% Learning rate: 1.e-5, lambda = 1, no offset, intial guess all zeros, ran for 300 iterations
+	% \item final log loss: 0.294387 (training), 0.292029 (testing), and 0/1 loss: 0.080517 (training), 0.079700 (testing)
+\end{enumerate}
+
+
+
+\subsection{Softmax classification: stochastic gradient descent}
+\begin{enumerate}
+	\item For this problem I used a decaying learning rate of $10^{-4} / \sqrt{t+1}$, where $t$ is the iteration number. I used a regularization parameter of $\lambda=1$, no offset, and an initial guess of all weights set to zero.
+	\begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{logLoss_MClass_LReg_SGD1}
+        \caption{Log loss on training and test sets for multiclass logistic regression using stochastic gradient descent with batch size 1} 
+        \label{fig:2.3.1log}
+    \end{figure}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.75\textwidth]{z1Loss_MClass_LReg_SGD1}
+        \caption{0/1 loss on training and test sets for multiclass logistic regression using stochastic gradient descent with batch size 1} 
+        \label{fig:2.3.1z1}
+    \end{figure}
+
+    Figures \ref{fig:2.3.1log} and \ref{fig:2.3.1z1} show the log and 0/1 losses, respectively, on both the training and testing sets as functions of the numbers of iterations. These losses were sampled every time stochastic gradient descent had sampled an additional 15,000 points. In this case that corresponded to once every 15,000 iterations. After about 450,000 iterations, stochastic gradient descent (with batch size 1) attained similar performance to batch gradient descent, achieving a log loss of 0.306910 and a 0/1 loss of 7.9550 percent on the training set and a log loss of 0.350849 and 0/1 loss of 8.7600 percent on the training set, though these numbers vary a bit for any given run due to the random selection of the point at which to evaluate the gradient.
+
+	% Learning rate: 1.e-4 / (sqrt(it+1)), lambda = 1, no offset, initial guess all zeros
+
+	\item Batch gradient descent required $1,000$ iterations to produce the results given above. Each such iteration costs $n=60,000$ times as much work as an iteration of stochastic gradient descent with batch size 1. In total, we can approximate the amount of work it used as being $1,000n = 1,000\times 60,000 = 60,000,000$ times the work of a single iteration of stochastic gradient descent. Since stochastic gradient descent only needs around $450,000$ iterations to get similar performance, it is about $60,000,000 / 450,000 \approx 133$ times as efficient on this problem.
+
+	\item For this problem I used a decaying learning rate of $10^{-3} / (4\sqrt{t+1})$, where $t$ is the iteration number. My regularization parameter was $\lambda =1$. I did not use an offset and my initial guess was all zeros.
+
+	\begin{figure}
+        \centering
+        \includegraphics[width=.75\textwidth]{logLoss_MClass_LReg_SGD100}
+        \caption{Log loss on training and test sets for multiclass logistic regression using stochastic gradient descent with batch size 100} 
+        \label{fig:2.3.2log}
+    \end{figure}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.75\textwidth]{z1Loss_MClass_LReg_SGD100}
+        \caption{0/1 loss on training and test sets for multiclass logistic regression using stochastic gradient descent with batch size 100} 
+        \label{fig:2.3.2z1}
+    \end{figure}
+
+    Figures \ref{fig:2.3.2log} and \ref{fig:2.3.2z1} show the log and 0/1 losses, respectively, on both the training and testing sets as functions of the numbers of iterations. These losses were sampled every time stochastic gradient descent had sampled an additional 15,000 points. In this case that corresponded to once every 150 iterations. We have plotted out to 4,500 iterations, though the method achieved similar results (with respect to 0/1 loss) to batch gradient descent after only about 3,000 iterations. At this point the log loss on the training set was 0.292830 and the 0/1 loss was 7.6367 percent. On the training set the log loss was 0.307059 and the 0/1 loss was 8.1100 percent.
+
+    \item Recall that stochastic gradient descent using only 1 points needed 450,000 iterations to get similar results to stochastic gradient descent with batch size 100. Assuming using stochastic gradient descent with batch size 100 costs 100 times more than using batch size 1, $3,000$ iterations of SGD with batches of 100 are roughly equivalent in cost to $3,000\times 100 = 300,000$ iterations of SGD with batches of 1. So using batches of 100 is roughly $1.5$ times as efficient as using batches of size 1 on this problem!
+
+    The code for this problem can be found in \texttt{hw2-2-3.py}.
+
+\end{enumerate}
+
+\subsection{Neural Nets with a random first layer: Using more features}
+\begin{enumerate}
+	\item I chose to use stochastic gradient descent with batch size 100. My learning rate was $10^{-1}/\sqrt{t+1}$, where $t$ is the iteration number. I used a regularization constant $\lambda=1$, no offset, and an initial guess of all zeros.
+
+	\begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{logLoss_MClass_LReg_neur_SGD100}
+        \caption{Log loss on training and test sets (with more features) for multiclass logistic regression using stochastic gradient descent with batch size 100} 
+        \label{fig:2.4log}
+    \end{figure}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{z1Loss_MClass_LReg_neur_SGD100}
+        \caption{0/1 loss on training and test sets (with more features) for multiclass logistic regression using stochastic gradient descent with batch size 100} 
+        \label{fig:2.4z1}
+    \end{figure}
+
+
+	Figure \ref{fig:2.4log} and \ref{fig:2.4z1} show the log and 0/1 loss for multiclass logistic regression using stochastic gradient descent as a function of iteration count. The log and 0/1 losses were computed once every 150 iterations. 
+	After 30,000 iterations the log loss on the training set was 0.065144 and the 0/1 loss was 1.4817 percent. On the test set the log loss was 0.162889 and the 0/1 loss was 0.033900 percent. Using the same parameters and more iterations we were also able to achieve results slightly better than those in section 1.2, i.e. a 0/1 loss of a little over 0.6 percent on the training set and a bit over 2 percent on the test set. However, we mistakenly neglected to generate plots in this case. The code for this problem can be found in \texttt{hw2-2-4.py}.
+\end{enumerate}
+
+
+% Problem 3
+\section{(Baby) Learning Theory: Why is statistical learning possible?}
+\subsection{A confidence interval for a coin}
+\begin{enumerate}
+	\item Fix $\delta >0$. Note that if, for some $\epsilon>0$, $\mathrm{Pr}(|\bar Z-\theta|\geq\epsilon)\leq 2e^{-2N\epsilon^2}$, then $\mathrm{Pr}(|\bar Z-\theta|<\epsilon)<1-2e^{-2N\epsilon^2}$. So if we take $\delta = 2e^{-2N\epsilon^2}$, we have our desired bound. To this end, we solve for $\delta$ in terms of $\epsilon$
+	\begin{align*}
+		\delta &= 2e^{-2N\epsilon^2}\\
+		\implies \log\left(\frac\delta2\right)&=-2N\epsilon^2\\
+		\implies \frac{-1}{2N}\log\left(\frac\delta2\right) &= \epsilon^2\\
+		\implies \sqrt{\frac{1}{2N}\log(2/\delta)} &= \epsilon.
+	\end{align*}
+	Hence, the probability that $|\bar Z-\theta|<\sqrt{\tfrac{1}{2N}\log(2/\delta)}$ is greater than $1-\delta$.
+\end{enumerate}
+
+\subsection{Estimating the performance of a given classifier}
+\begin{enumerate}
+	\item Let us use the following estimator of $L(f)$
+	\[
+		\hat L(f) := \frac1n\sum^n_{i=1}\left(y_i-f(x_i)\right)^2.
+	\]
+	Notice that since $f$ maps from $\mathcal{X}$ to $\{0,1\}$, and $y_i\in\{0,1\}$, each of the terms in the sum is either 0 or 1. $\hat L(f)$ simply gives the probability that $f$ misclassifies a point in our set of samples. We can relate this situation with the previous problem as follows: let $Z=(Y-f(X))^2$ be a random variable, taking values in $\{0,1\}$ and denote $Z_i=(y_i-f(x_i))^2$. Observe that $Z$ is a Bernoulli$(\theta)$ random variable, i.e. Pr$(Z=1)=\theta$ and Pr$(Z=0)=1-\theta$, for some parameter $\theta\in[0,1]$. Furthermore,
+	\[
+		L(f) = E_{X,Y}(\bm{1}(f(X)\neq Y))= E_Z(Z)=\theta,
+	\]
+	and
+	\[
+		\hat L(f) = \frac1n\sum^n_{i=1}Z_i = \bar Z.
+	\]
+	Thus, by the previous result, since the samples are i.i.d and $f^*$ is chosen independently of them, the $Z_i$ are i.i.d, and we have
+	\begin{align*}
+		\mathrm{Pr}\left(|L(f)-\hat L(f)|<\sqrt{\tfrac{1}{2N}\log(2/\delta)}\right) &= \mathrm{Pr}\left(|\theta-\bar Z|<\sqrt{\tfrac{1}{2N}\log(2/\delta)}\right) > 1- \delta.
+	\end{align*}
+
+\end{enumerate}
+
+\subsection{ERM revisited}
+\begin{enumerate}
+	\item The confidence interval above does hold when applied to $f^*$. If we take $f^*$ to be the ``given'' classifier, $f$, in the previous problem, then all the arguments used there still apply. It is important to notice that $f^*$ is given to separately from the samples upon which we estimate the loss, $\{(x_1,y_1),\dots,(x_n,y_n)\}$.
+	\item The confidence interval from the last question does not hold with probability greater than $1-\delta$ for $\hat f$. This is because the classifier, $\hat f$, we choose depends implicitly on the set of samples $\{(x_1,y_1),\dots,(x_n,y_n)\}$ that are used for training. If we had been given different samples, we may have chosen a different function in $\mathcal{F}$ as our classifier. In the previous part we needed $Z_1,Z_2,\dots,Z_n$ to be i.i.d. However, in this instance they fail to be independent. $\hat f$ is chosen so that the sum $\sum^n_{i=1}Z_i(f)$ is minimal, where $Z_i(f) = (f(x_i)-y_i)^2$. Whether or not a particular $Z_i(f)$ is 0 or not for a given $f$ will affect whether or not that $f$ is chosen to be $\hat f$, thereby affecting the other $Z_j(f)$ (if a different function is chosen, they can change). Since this i.i.d. assumption is not met, the confidence interval is not valid for $\hat f$.
+	\item From part 3.2, we know that for a given $f\in\mathcal{F}$, 
+	\[
+		\mathrm{Pr}\left(|\hat L(f)-L(f)|>B \right)\leq 2e^{-2NB^2}.
+	\]
+	If $\mathcal{F} = \{f_1,f_2,\dots,f_k\}$, then 
+	\begin{align*}
+		&\mathrm{Pr}\left(|\hat L(f_1)-L(f_1)|>B~\mathrm{or}~|\hat L(f_2)-L(f_2)|>B~\mathrm{or}\dots\mathrm{or}~|\hat L(f_k)-L(f_k)|>B \right)\\
+		&\leq \sum^k_{i=1}\mathrm{Pr}\left(|\hat L(f_i)-L(f_i)|>B\right) \\
+		&\leq  2ke^{-2NB^2}.
+	\end{align*}
+	Hence,
+	\begin{align*}
+		&\mathrm{Pr}\left(\forall f\in\mathcal{F},|\hat L(f)-L(f)|\leq B|\right)\\
+		&= 1 - \mathrm{Pr}\left(|\hat L(f_1)-L(f_1)|>B~\mathrm{or}~|\hat L(f_2)-L(f_2)|>B~\mathrm{or}\dots\mathrm{or}~|\hat L(f_k)-L(f_k)|>B \right) \\
+		&\geq 1 - 2ke^{-2NB^2}.
+	\end{align*}
+	So if we choose $B$ so that $\delta = 2ke^{-2NB^2}$, then we get our desired confidence interval. I.e., for fixed $\delta>0$, solving for $B$ in terms of $\delta$ in the above, we see that if we choose
+	\[
+		B = \sqrt{\frac{1}{2N}\log(2k/\delta)},
+	\]
+	then 
+	\[
+		\mathrm{Pr}\left(\forall f\in\mathcal{F},|\hat L(f)-L(f)|\leq B\right) \geq 1-\delta.
+	\]
+	Notice that the larger $k$ becomes, the worse our confidence interval becomes.
+	\item Fix $\delta>0$. Since $\hat f\in\mathcal{F}$ the bound derived in the previous part certainly holds for it. That is to say, if we choose
+	\[
+		B = \sqrt{\frac{1}{2N}\log(2k/\delta)}
+	\]
+	as above, then since the event that $\forall f\in\mathcal{F},|\hat L(f)-L(f)|\leq B$ is a subset of the event $|\hat L(\hat f)- L(\hat f)|\leq B$, we have
+	\[
+		\mathrm{Pr}\left( |\hat L(\hat f)-L(\hat f)|\leq B \right) \geq \mathrm{Pr}\left(\forall f\in\mathcal{F},|\hat L(f)-L(f)|\leq B\right) \geq 1-\delta.
+	\]
+	\item First observe that since $\hat f$ minimizes $\hat L(f)$, $\hat L(\hat f)-\hat L(f^*)\leq 0$. Using this we have
+	\begin{align*}
+		L(\hat f)-L(f^*) &= L(\hat f)-\hat L(\hat f)+\hat L(\hat f)-\hat L(f^*)+\hat L(f^*)-L(f^*)\\
+		&= \left(L(\hat f)-\hat L(\hat f)\right) + \left(\hat L(\hat f)-\hat L(f^*)\right) + \left(\hat L(f^*)-L(f^*)\right)\\
+		&\leq \left(L(\hat f)-\hat L(\hat f)\right) + \left(\hat L(f^*)-L(f^*)\right)\\
+		&\leq \left|L(\hat f)-\hat L(\hat f)\right| + \left|\hat L(f^*)-L(f^*)\right|.
+	\end{align*}
+	Next, notice that since $\hat f,f^*\in\mathcal{F}$, we can use the confidence interval from part 3 to bound both $\left|L(\hat f)-\hat L(\hat f)\right|$ and $\left|\hat L(f^*)-L(f^*)\right|$ simultaneously with probability greater than $1-\delta$. Specifically, we saw that if we take
+	\[
+		B = \sqrt{\frac{1}{2N}\log(2k/\delta)}
+	\]
+	then 
+	\[
+		\mathrm{Pr}\left(\forall f\in\mathcal{F},|\hat L(f)-L(f)|\leq B\right) \geq 1-\delta.
+	\]
+	Using this, we have
+	\begin{align*}
+		&\mathrm{Pr}\left(L(\hat f)-L(f^*) \leq \left|L(\hat f)-\hat L(\hat f)\right| + \left|\hat L(f^*)-L(f^*)\right|\leq 2B\right)\\
+		&\geq \mathrm{Pr}\left(\forall f\in\mathcal{F},|\hat L(f)-L(f)|\leq B\right)\\
+		&\geq 1-\delta,
+	\end{align*}
+	since the event $\left\{\left|L(\hat f)-\hat L(\hat f)\right|\leq B~\mathrm{and}~\left|\hat L(f^*)-L(f^*)\right|\leq B\right\}$ is a subset of the event $\forall f\in\mathcal{F},|\hat L(f)-L(f)|\leq B$
+
+	\item Let $\delta>0$ be fixed.
+	\begin{enumerate}
+		\item If $K$ is constant then we can learn since our upper bound on our regret is then $R = 2\sqrt{\frac{1}{2N}\log(2K/\delta)} = \mathcal{O}(N^{-1/2})$, which tends to 0 as $N\to\infty$.
+		\item If $K=N^p$, for some constant $p$, then learning is still possible since
+		\[
+			R = 2\sqrt{\frac{1}{2N}\log(2N^p/\delta)} ~=~ 2\sqrt{\frac{1}{2N}\left(p\log(N)+\log(2/\delta)\right)} ~=~ \mathcal{O}\left(\sqrt{\frac{\log(N)}{N}}\right)
+		\]
+		which also tends to 0 as $N\to\infty$.
+		\item If we are even more greedy and $K=e^{\sqrt{N}}$ then we can still learn. To see this, we again examine the regret bound:
+		\begin{align*}
+			R &= 2\sqrt{\frac{1}{2N}\log(2e^{\sqrt{N}}/\delta)}\\
+			&= 2\sqrt{\frac{1}{2N}\left(\sqrt{N}+\log(2/\delta)\right)}\\
+			&= \mathcal{O}\left(\sqrt{\frac{\sqrt{N}}{N}}\right)\\
+			&= \mathcal{O}\left(N^{-1/4}\right).
+		\end{align*}
+		Hence the regret bound tends to 0 as $N\to\infty$.
+		\item If we choose $K=e^{10N}$, then we are not able to learn since our regret bound is
+		\begin{align*}
+			R &= 2\sqrt{\frac{1}{2N}\log(2e^{10N}/\delta)}\\
+			&= 2\sqrt{\frac{1}{2N}(\log(2)+10N-\log(\delta))}\\
+			&=2\sqrt{5+\frac{1}{2N}(\log(2/\delta))}.
+		\end{align*}
+		This term does not vanish as $N\to\infty$, so no matter how many samples we take, we cannot expect to be able to approach the best possible loss in our hypothesis space.
+	\end{enumerate}
+\end{enumerate}
+
+\end{document}
+
