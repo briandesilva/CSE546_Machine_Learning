@@ -140,6 +140,107 @@
 	\]
 \end{enumerate}
 
+\subsection{PCA}
+\begin{enumerate}
+	\item Without centering the data, the eigenvalues we obtain for $\Sigma$ are 
+	\begin{align*}
+		\lambda_1 &= 2476871.877922\\
+		\lambda_2 &= 285468.253236\\
+		\lambda_{10} &= 81022.153964\\
+		\lambda_{30} &= 23690.383772\\
+		\lambda_{50} &= 11076.827129.
+	\end{align*}
+	The sum of the eigenvalues is $\sum^{784}_{i=1}\lambda_i = 5709846.669117$. Notice that the first eigenvalue accounts for almost half of the total of all the eigenvalues.
+	\item
+	\begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{fre1}
+        \caption{Fractional reconstruction error using the top 1 through 50 principal components} 
+        \label{fig:fre1}
+    \end{figure}
+	We plot the fractional reconstruction error retaining 1 through 50 of the top principal directions in Figure \ref{fig:fre1}.
+	\item The first eigenvector captures the average image of the dataset. The first eigenvalue gives some indication of how close the images are to this average one. All of the images have a large amount of blank space in common, and so they are, in a sense, well-approximated by the average image. This explains why the first eigenvalue is so large compared to the rest.
+	\item 
+	\begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{fre2}
+        \caption{Fractional reconstruction error using the top 2 through 50 principal components} 
+        \label{fig:fre2}
+    \end{figure}
+    We show the fractional reconstruction error for dimensions 2 through 50 in Figure \ref{fig:fre2}.
+\end{enumerate}
+
+\subsection{Visualization of the Eigen-Directions}
+\begin{enumerate}
+	\item
+	\begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{topEvs}
+        \caption{The eigenvectors corresponding to the 10 largest eigenvalues of $\Sigma$. Grey corresponds to values of 0, black to positive values, and white to negative values.} 
+        \label{fig:topEvs}
+    \end{figure}
+	Visualizations of the top 10 eigenvectors are shown in Figure \ref{fig:topEvs}.
+	\item As I mentioned in a previous problem, the first eigenvector captures the average of all the images. The other eigenvalues appear to contain information about patterns encountered in many of the digits. The second eigenvalue, for example, appears to encapsulate the roundness that many digits exhibit (i.e. 0,3,6,8, and 9). 
+\end{enumerate}
+
+\subsection{Visualization and Reconstruction}
+\begin{enumerate}
+	\item 
+	\begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{digits}
+        \caption{Five different images from the MNIST dataset} 
+        \label{fig:digits}
+    \end{figure}
+    Figure \ref{fig:digits} shows five images from the MNIST dataset (the first five, in fact).
+    \item 
+    \begin{figure}
+        \centering
+        \begin{subfigure}[b]{0.95\textwidth}
+        	\centering
+        	\includegraphics[width=0.7\linewidth]{02evRecon}
+        	\caption{Reconstruction with two eigenvectors}
+        	\label{fig:2ev}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.95\textwidth}
+        	\centering
+        	\includegraphics[width=0.7\linewidth]{05evRecon}
+        	\caption{Reconstruction with five eigenvectors}
+        	\label{fig:4ev}
+        \end{subfigure}
+        \caption{Reconstruction of MNIST images using two and five eigenvectors}
+        \label{fig:evRecons1}
+    \end{figure}
+
+    \begin{figure}
+    	\centering
+        \begin{subfigure}[b]{0.95\textwidth}
+        	\centering
+        	\includegraphics[width=0.7\linewidth]{10evRecon}
+        	\caption{Reconstruction with 10 eigenvectors}
+        	\label{fig:10ev}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.95\textwidth}
+        	\centering
+        	\includegraphics[width=0.7\linewidth]{20evRecon}
+        	\caption{Reconstruction with 20 eigenvectors}
+        	\label{fig:20ev}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.95\textwidth}
+        	\centering
+        	\includegraphics[width=0.7\linewidth]{50evRecon}
+        	\caption{Reconstruction with 50 eigenvectors}
+        	\label{fig:50ev}
+        \end{subfigure}
+        \caption{Reconstructions of MNIST images using different numbers of eigenvectors} 
+        \label{fig:evRecons2}
+    \end{figure}
+    Figure \ref{fig:evRecons1} shows the reconstructions produced using two and five eigenvectors, respectively. Figure \ref{fig:evRecons2} visualizes the reconstructions utilizing 10, 20, and 50 eigenvectors, respectively.
+    \item The two-eigenvector reconstruction is not very good. Under this projection some of the digits look almost identical. Using just five eigenvectors, one can already make out most of the digits. With 10 eigenvectors these digits become even clearer, though the 4 appears to be difficult to represent. The 20-eigenvalue approximation is crisper than the previous ones, but the increase in quality it starting to slow. Adding another 30 eigenvalues makes it very easy to discern the digits. Overall, adding more eigenvalues improves the projection quality, but the returns are diminishing.
+
+\end{enumerate}
+
+
 % Problem 3
 \section{SVMs: Hinge loss and mistake bounds}
 \begin{enumerate}
