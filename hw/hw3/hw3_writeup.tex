@@ -237,9 +237,18 @@
     \end{figure}
     Figure \ref{fig:evRecons1} shows the reconstructions produced using two and five eigenvectors, respectively. Figure \ref{fig:evRecons2} visualizes the reconstructions utilizing 10, 20, and 50 eigenvectors, respectively.
     \item The two-eigenvector reconstruction is not very good. Under this projection some of the digits look almost identical. Using just five eigenvectors, one can already make out most of the digits. With 10 eigenvectors these digits become even clearer, though the 4 appears to be difficult to represent. The 20-eigenvalue approximation is crisper than the previous ones, but the increase in quality it starting to slow. Adding another 30 eigenvalues makes it very easy to discern the digits. Overall, adding more eigenvalues improves the projection quality, but the returns are diminishing.
-
 \end{enumerate}
 
+% ---------------------------------
+
+% Problem 2
+\section{Let's get to state of the art on MNIST!}
+\subsection{Least Squares}
+\begin{enumerate}
+	\item 
+\end{enumerate}
+
+% ---------------------------------
 
 % Problem 3
 \section{SVMs: Hinge loss and mistake bounds}
@@ -276,6 +285,44 @@
 	\]
 	Dividing both sides by $n$ gives the desired result.
 \end{enumerate}
+
+\section{Fitting an SVM classifier by hand}
+We will use the equations
+\begin{align}
+	\bm{\hat w},\hat w_0 =\mathrm{argmin}\|w\|^2 \quad s.t. \label{eqn:1}\\
+	y_1(w^T\phi(x_1)+w_0)\geq 1 \label{eqn:2}\\
+	y_2(w^T\phi(x_2)+w_0)\geq 1. \label{eqn:3}
+\end{align}
+\begin{enumerate}
+	\item The optimal vector $\bm{\hat w}$ is orthogonal to the decision boundary, which, in this case, should be the plane lying directly in the middle of $\phi(x_1) = (1,0,0)^T$ and $\phi(x_2)=(1,2,2)^T$. Hence $\bm{\hat w}$ is a normal vector for this plane and all normal vectors for this plane are proportional to $\phi(x_2)-\phi(x_1) = (0,2,2)^T$. Hence $\bm{\hat w} = \alpha (0,1,1)^T$ for some $\alpha\in\R$. In particular $(0,1,1)^T$ is parallel to $\bm{\hat w}$.
+	\item Since the decision boundary is the plane in the middle of the two new features, the margin is simply half the distance between the two points $\phi(x_1)$ and $\phi(x_2)$. I.e. the margin is
+	\[
+		\frac12 \|\phi(x_2)-\phi(x_1)\| = \frac12 \|(0,2,2)^T\| = \frac12 (2\sqrt{2}) = \sqrt{2}.
+	\]
+	\item Since the margin is equal to $1/\|\bm{\hat w}\|$, we know that $\|\bm{\hat w}\|= 1 / \sqrt{2}$. From before, $\|\bm{\hat w}\| = \|\alpha(0,1,1)\| = \alpha\sqrt{2}$. Equating these two expressions, we see that $\alpha = \tfrac12$, so
+	\[
+		\bm{\hat w} = \frac12\bbm0\\1\\1\ebm = \bbm 0\\ 1/2 \\ 1/2 \ebm.
+	\]
+	\item Having determined $\bm{\hat w}$ we are now in a position to solve for $w_0$. Equation (\ref{eqn:1}) now simply states that we should choose $w_0$ to have minimal magnitude. Plugging into constraints (\ref{eqn:2}) and (\ref{eqn:3}), we get
+	\begin{align*}
+		y_1(w^T\phi(x_1)+w_0) &= -1[(0,1/2,1/2)\cdot(1,0,0)+w_0] &=~ -w_0 & \geq1 &\implies w_0\leq -1 \\
+		y_2(w^T\phi(x_2)+w_0) &= 1[(0,1/2,1/2)\cdot(1,2,2)+w_0] &= 2+w_0 & \geq 1 &\implies w_0\geq -1.
+	\end{align*}
+	The only value for $w_0$ which satisfies both of these constraints is $w_0=-1$.
+	\item Substituting in the values we found, we obtain
+	\[
+		f(x) = \hat w_0 + \bm{\hat w^T}\phi(x) = -1 + (0,1/2,1/2)\cdot(1,\sqrt{2}x,x^2) = -1 + \frac{\sqrt{2}}{2}x+\frac12x^2.
+	\]
+	\begin{figure}
+        \centering
+        \includegraphics[width=.85\textwidth]{discriminant}
+        \caption{The discriminant function $f(x)$ (blue) and the two points in the dataset (red)} 
+        \label{fig:discr}
+    \end{figure}
+    Figure \ref{fig:discr} shows a 2d plot of this discriminant function (generated in Mathematica). The blue curve is the graph of the function and the red points are the values of $f$ at the two data points.
+\end{enumerate}
+
+
 
 
 
