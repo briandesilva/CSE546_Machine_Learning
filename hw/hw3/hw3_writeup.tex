@@ -247,6 +247,33 @@
 The code for this problem is contained in \texttt{hw3-2.py}.
 \begin{enumerate}
 	\item To obtain the results presented in this section I used the following parameters: a mini-batch size of 10, no regularization, stochastic gradient descent with a learning rate of $10^{-5} / (2\sqrt{t+1})$, where $t$ is the iteration, and initial weights all 0. I used the Fourier features with a kernel bandwidth that is 1/2 the approximate mean distance between points in the dataset. In order to approximate this distance I randomly sampled 100 pairs of points from the training data and took the mean of their Euclidean distances from one another. To obtain the plots below I ran SGD for 10 epochs.
+
+
+	\item
+	\begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{sqlossLS10epoch}
+        \caption{The square loss of Stochastic gradient descent for the least squares problem applied to Fourier features of the projected MNIST dataset as a function of iteration, starting at iteration 0} 
+        \label{fig:sqlossLS10epoch}
+    \end{figure}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{sqlossLS10epochtrunc}
+        \caption{The square loss of Stochastic gradient descent for the least squares problem applied to Fourier features of the projected MNIST dataset as a function of iteration, starting after one epoch} 
+        \label{fig:sqlossLS10epochtrunc}
+    \end{figure}
+	Figure \ref{fig:sqlossLS10epoch} shows the squared loss after each epoch on the training and test sets for both $w_t$ (labeled ``w'' in the legend) and the average weight vector over each epoch (denoted ``wAvg'' in the legend). To better view how the square loss is decreasing Figure \ref{fig:sqlossLS10epochtrunc} shows the same plot with one set of data points removed--those corresponding to the initial error.
+	\item
+    \begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{z1lossLS10epoch}
+        \caption{The 0/1 loss of Stochastic gradient descent for the least squares problem applied to Fourier features of the projected MNIST dataset as a function of iteration, starting after one epoch} 
+        \label{fig:z1lossLS10epoch}
+    \end{figure}
+	Figure \ref{fig:z1lossLS10epoch} plots the 0/1 loss on the training and test sets after each epoch for both the actual set of weights and the average weights. Note that the initial 0/1 loss (around 0.9--as good as randomly guessing the labels) has not been included in the plot. This makes it easier to see what is happening.
+	\item After 10 epochs my final training squared loss was about 0.04036 and my final training 0/1 loss was 0.005100. Both of these numbers were computed using the average weights over the last epoch. The total number of misclassifications made with this weight vector was 306 (out of 60000).
+	\item After 10 epochs my final square loss on the test set was 0.06111 and my final 0/1 loss on this set was 0.013900. Both of these numbers were computed using the average weights over the last epoch. The total number of misclassifications made with this weight vector was 139 (out of 10000).
+
 \end{enumerate}
 
 % ---------------------------------
@@ -321,7 +348,7 @@ We will use the equations
         \caption{The discriminant function $f(x)$ (blue) and the two points in the dataset (red)} 
         \label{fig:discr}
     \end{figure}
-    Figure \ref{fig:discr} shows a 2d plot of this discriminant function (generated in Mathematica). The blue curve is the graph of the function and the red points are the values of $f$ at the two data points.
+    Figure \ref{fig:discr} shows a 2d plot of this discriminant function (generated in Mathematica). The blue curve is the graph of the function and the red points are the values of $f$ at the two data points. Note that $f$ evaluates to -1 and 1 at the two points.
 \end{enumerate}
 
 

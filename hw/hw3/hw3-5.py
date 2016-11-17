@@ -11,7 +11,7 @@ import os
 import time
 import matplotlib.pyplot as plt
 import matplotlib
-from scipy import stats 		# For mode
+from scipy import stats 		# For stats.mode
 
 # Time the code
 t1 = time.time()
@@ -125,98 +125,96 @@ scaleFactor = np.sqrt(np.max(np.sum(trainProj**2,1)))
 trainProj /= scaleFactor
 testProj /= scaleFactor
 
-# # 
-# # Run k-means with 16 centers
-# # 
+# 
+# Run k-means with 16 centers
+# 
 
-# numClusts = 16
-# t1 = time.time()
-# (labels,means,sqErr) = kmeans(numClusts,trainProj)
-# print "Time elapsed to run k-means: %f" %(time.time()-t1)
+numClusts = 16
+t1 = time.time()
+(labels,means,sqErr) = kmeans(numClusts,trainProj)
+print "Time elapsed to run k-means: %f" %(time.time()-t1)
 
-# # Rescale the centers
-# means *= scaleFactor
+# Rescale the centers
+means *= scaleFactor
 
-# # Plot the square reconstruction error
-# matplotlib.rcParams.update({'font.size' : 22})
-# plt.figure(1)
-# plt.plot(range(1,len(sqErr)),sqErr[1:],'b',linewidth=2.0)
-# plt.xlabel('Iteration')
-# plt.ylabel('Square reconstruction error (16 centers)')
+# Plot the square reconstruction error
+matplotlib.rcParams.update({'font.size' : 22})
+plt.figure(1)
+plt.plot(range(1,len(sqErr)),sqErr[1:],'b',linewidth=2.0)
+plt.xlabel('Iteration')
+plt.ylabel('Square reconstruction error (16 centers)')
 
-# # Plot the number of assignments for each center
-# (hist,dummy) = np.histogram(labels,bins=range(numClusts+1))
-# inds = np.argsort(-hist)
-# histSort = -np.sort(-hist)
+# Plot the number of assignments for each center
+(hist,dummy) = np.histogram(labels,bins=range(numClusts+1))
+inds = np.argsort(-hist)
+histSort = -np.sort(-hist)
 
-# plt.figure(2)
-# plt.bar(np.arange(numClusts),histSort,align='center',alpha=0.5)
-# plt.xticks(np.arange(numClusts),inds)
-# plt.ylabel('Number of class assignments')
-# plt.xlabel('Class')
+plt.figure(2)
+plt.bar(np.arange(numClusts),histSort,align='center',alpha=0.5)
+plt.xticks(np.arange(numClusts),inds)
+plt.ylabel('Number of class assignments')
+plt.xlabel('Class')
 
-# # Project back up to the higher dimensional space
-# projMeans = means.dot(V[:50,:])
+# Project back up to the higher dimensional space
+projMeans = means.dot(V[:50,:])
 
-# # Visualize the 16 centers
-# imSize = np.sqrt(projMeans.shape[1]).astype(int)
-# plt.figure(3)
-# for k in range(16):
-# 	plt.subplot(4,4,k+1)
-# 	imgplot = plt.imshow(projMeans[k,:].reshape(imSize,imSize))
-# 	imgplot.set_cmap('Greys')
-# 	plt.axis('off')
-# plt.show()
+# Visualize the 16 centers
+imSize = np.sqrt(projMeans.shape[1]).astype(int)
+plt.figure(3)
+for k in range(16):
+	plt.subplot(4,4,k+1)
+	imgplot = plt.imshow(projMeans[k,:].reshape(imSize,imSize))
+	imgplot.set_cmap('Greys')
+	plt.axis('off')
+plt.show()
 
-# # 
-# # Try redo-ing the above with 250 centers
-# # 
+# 
+# Try redo-ing the above with 250 centers
+# 
 
-# numClusts = 250
+numClusts = 250
 
-# t1 = time.time()
-# (labels,means,sqErr) = kmeans(numClusts,trainProj)
-# print "Time elapsed to run k-means: %f" %(time.time()-t1)
+t1 = time.time()
+(labels,means,sqErr) = kmeans(numClusts,trainProj)
+print "Time elapsed to run k-means: %f" %(time.time()-t1)
 
-# # Rescale the centers
-# # means *= scaleFactor
+# Rescale the centers
+means *= scaleFactor
 
-# # Plot the square reconstruction error
-# plt.figure(4)
-# plt.plot(range(1,len(sqErr)),sqErr[1:],'b',linewidth=2)
-# plt.xlabel('Iteration')
-# plt.ylabel('Square reconstruction error (250 centers)')
+# Plot the square reconstruction error
+plt.figure(4)
+plt.plot(range(1,len(sqErr)),sqErr[1:],'b',linewidth=2)
+plt.xlabel('Iteration')
+plt.ylabel('Square reconstruction error (250 centers)')
 
-# # Plot the number of assignments for each center
-# (hist,dummy) = np.histogram(labels,bins=range(numClusts+1))
-# inds = np.argsort(-hist)
-# histSort = -np.sort(-hist)
+# Plot the number of assignments for each center
+(hist,dummy) = np.histogram(labels,bins=range(numClusts+1))
+inds = np.argsort(-hist)
+histSort = -np.sort(-hist)
 
-# plt.figure(5)
-# plt.bar(np.arange(numClusts),histSort,align='edge',alpha=0.5)
-# # plt.xticks(np.arange(numClusts),inds)
-# plt.ylabel('Number of class assignments')
-# # plt.xlabel('Class')
+plt.figure(5)
+plt.bar(np.arange(numClusts),histSort,align='edge',alpha=0.5)
+plt.ylabel('Number of class assignments')
 
-# # Project back up to the higher dimensional space
-# projMeans = means.dot(V[:50,:])
+# Project back up to the higher dimensional space
+projMeans = means.dot(V[:50,:])
 
-# # Visualize 16 random centers
+# Visualize 16 random centers
 
-# imSize = np.sqrt(projMeans.shape[1]).astype(int)
-# samples = np.random.choice(np.arange(0,numClusts),16)
-# sampledMeans = projMeans[samples,:]
-# sampledHist = hist[samples]
-# sampledInds = np.argsort(-sampledHist)
+imSize = np.sqrt(projMeans.shape[1]).astype(int)
+samples = np.random.choice(np.arange(0,numClusts),16)
+sampledMeans = projMeans[samples,:]
+sampledHist = hist[samples]
+sampledInds = np.argsort(-sampledHist)
 
-# plt.figure(6)
-# for k in range(16):
-# 	plt.subplot(4,4,k+1)
-# 	imgplot = plt.imshow(sampledMeans[sampledInds[k],:].reshape(imSize,imSize))
-# 	imgplot.set_cmap('Greys')
-# 	plt.axis('off')
-# 	# plt.title(samples[k])
-# plt.show()
+plt.figure(6)
+for k in range(16):
+	plt.subplot(4,4,k+1)
+	imgplot = plt.imshow(sampledMeans[sampledInds[k],:].reshape(imSize,imSize))
+	imgplot.set_cmap('Greys')
+	plt.axis('off')
+	# plt.title(samples[k])
+plt.show()
 
 
 # ---------------------------------------------------------------------------------------------------
@@ -231,7 +229,6 @@ testProj /= scaleFactor
 numClusts = 250
 
 (labels,means,sqErrTrain) = kmeans(numClusts,trainProj,500)
-# (labelsTest,meansTest,sqErrTest) = kmeans(numClusts,testProj)
 
 # Determine labels for each mean
 meanLabels = np.empty(numClusts)
@@ -252,5 +249,5 @@ for k in range(len(test_label)):
 z1Train = (1.0 * np.count_nonzero(kmeansClassTrain - train_label)) / train_label.shape[0]
 z1Test = (1.0 * np.count_nonzero(kmeansClassTest - test_label)) / test_label.shape[0]
 
-print "0/1 loss for k-means with 16 means (train): %f" %z1Train
-print "0/1 loss for k-means with 16 means (test): %f" %z1Test
+print "0/1 loss for k-means with %d means (train): %f" %(numClusts,z1Train)
+print "0/1 loss for k-means with %d means (test): %f" %(numClusts,z1Test)
