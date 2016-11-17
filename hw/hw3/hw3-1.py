@@ -61,14 +61,13 @@ plt.plot(range(0,50),fre,'b-o')
 plt.xlabel('Number of PCA directions used')
 plt.ylabel('Fractional reconstruction error')
 plt.title('Fractional reconstrution error')
-plt.show()
 
 # #-------------------------------------------------------------------------------------------------------------
 # #								Part 1.3 - Visualization of the Eigen-directions
 # #-------------------------------------------------------------------------------------------------------------
 
 # Plot the first 10 eigenvectors as images
-imSize = np.sqrt(train_img.shape[1])
+imSize = np.sqrt(train_img.shape[1]).astype(int)
 plt.figure(2)
 for k in range(0,10):
 	plt.subplot(2,5,k+1)
@@ -76,8 +75,6 @@ for k in range(0,10):
 	imgplot = plt.imshow(V[k,:].reshape((imSize,imSize)))
 	imgplot.set_cmap('Greys')
 	plt.axis('off')
-
-plt.show()
 
 
 # #-------------------------------------------------------------------------------------------------------------
@@ -92,7 +89,6 @@ for k in range(0,5):
 	imgplot.set_cmap('Greys')
 	plt.axis('off')
 
-plt.show()
 
 # Reconstruct the images using various numbers of eigenvectors
 figCount = 4
@@ -104,5 +100,5 @@ for k in [2,5,10,20,50]:
 		imgplot = plt.imshow(reconstruction[:,j].reshape((imSize,imSize)))
 		imgplot.set_cmap('Greys')
 		plt.axis('off')
-	plt.show()
 	figCount += 1
+plt.show()

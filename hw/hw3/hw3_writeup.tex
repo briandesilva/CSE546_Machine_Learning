@@ -54,7 +54,7 @@
 %
 
 \newcommand{\hmwkTitle}{Homework 3}
-\newcommand{\hmwkDueDate}{November ***, 2016}
+\newcommand{\hmwkDueDate}{November 23, 2016}
 \newcommand{\hmwkClass}{CSE 546}
 \newcommand{\hmwkAuthorName}{Brian de Silva}
 
@@ -244,8 +244,9 @@
 % Problem 2
 \section{Let's get to state of the art on MNIST!}
 \subsection{Least Squares}
+The code for this problem is contained in \texttt{hw3-2.py}.
 \begin{enumerate}
-	\item 
+	\item To obtain the results presented in this section I used the following parameters: a mini-batch size of 10, no regularization, stochastic gradient descent with a learning rate of $10^{-5} / (2\sqrt{t+1})$, where $t$ is the iteration, and initial weights all 0. I used the Fourier features with a kernel bandwidth that is 1/2 the approximate mean distance between points in the dataset. In order to approximate this distance I randomly sampled 100 pairs of points from the training data and took the mean of their Euclidean distances from one another. To obtain the plots below I ran SGD for 10 epochs.
 \end{enumerate}
 
 % ---------------------------------
@@ -286,6 +287,7 @@
 	Dividing both sides by $n$ gives the desired result.
 \end{enumerate}
 
+% Problem 4
 \section{Fitting an SVM classifier by hand}
 We will use the equations
 \begin{align}
@@ -323,7 +325,75 @@ We will use the equations
 \end{enumerate}
 
 
+% Problem 5
+\section{K-Means}
+For this problem I chose to cluster on the 50-dimensional dataset. For the visualizations of the means I projected back up to the 784-dimensional space. It should also be noted that in order to improve numerical stability in the computation of the square reconstruction error, I first divided all the points in the dataset by the 2-norm of the largest magnitude entry. This preserves the geometry of the points, but alters the numerical value of the squared reconstruction error (but not its qualitative behavior). I made sure to rescale the means appropriately before projecting them back up to 784 dimensions.
 
+\subsection{Run the algorithm}
+
+\begin{enumerate}
+	\item I initialized K-means in a naive way by simply selecting 16 random points from the data set to be the initial means. The code for this problem is contained in \texttt{hw3-5.py}.
+	\begin{figure}
+		\centering
+	    	\includegraphics[width=0.7\textwidth]{kmeansReconErr16}
+	    	\caption{Squared reconstruction error as a function of iteration number for 16 means}
+	    	\label{fig:kmErr16}
+	\end{figure}
+	\begin{figure}
+		\centering
+	    	\includegraphics[width=0.85\textwidth]{kmeansClassAssign16}
+	    	\caption{The number of data points assigned to each class using 16 means}
+	    	\label{fig:kmAs16}
+	\end{figure}
+	\begin{figure}
+		\centering
+		\includegraphics[width=\textwidth]{kmeansMeans16}
+		\caption{Visualizations of the 16 means, ordered (descending) from top-left to bottom-right by the number of data points assigned to them}
+		\label{fig:kmVis16}
+	\end{figure}
+
+	\begin{enumerate}
+		\item Figure \ref{fig:kmErr16} shows the squared reconstruction error as a function of iteration number of the K-means algorithm with 16 means. As I mentioned above, this is the squared reconstruction error for the rescaled projections of the data points onto the first 50 singular vectors.
+		\item Figure \ref{fig:kmAs16} gives the numbers of data points assigned to each of the means in descending order. Along the x-axis are the labels associated with each mean.
+		\item Figure \ref{fig:kmVis16} provides visualizations of the 16 means. The top left image corresponds to the mean with the most points assigned to it and the one in the bottom left to the mean with the least. The images are sorted in descending order in the same order as one would read text (from top to bottom, left to right).
+	\end{enumerate}
+
+	\item The means that output by the method do in fact look as if they each correspond to specific digits or averages of two similar looking digits. Since there are more than 10 possible classes, the means correspond to specific digits and digits that look similar to one another. Some digits can be drawn in multiple ways and have multiple means corresponding to each style. The mean with the most data points assigned to it looks to be somewhere between a 9 and a 7, so it is likely that some 9's and some 7's are placed in its cluster. There are two variations of 1 present, a vertical one and a somewhat tilted one. There are also means that look to be close to both 8's and 3's, 9's and 4's and 5's and 8's. This output is a good sanity check that K-means is doing what we think it should do for this dataset.
+
+	\item I used the same initialization and rescaling procedures for 250 means as in the previous part of the problem.
+
+	\begin{figure}
+		\centering
+	    	\includegraphics[width=0.7\textwidth]{kmeansReconErr250}
+	    	\caption{Squared reconstruction error as a function of iteration number for 250 means}
+	    	\label{fig:kmErr250}
+	\end{figure}
+	\begin{figure}
+		\centering
+	    	\includegraphics[width=0.85\textwidth]{kmeansClassAssign250}
+	    	\caption{The number of data points assigned to each class using 250 means}
+	    	\label{fig:kmAs250}
+	\end{figure}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=\textwidth]{kmeansMeans250}
+		\caption{Visualizations of the 16 randomly selected means, ordered (descending) from top-left to bottom-right by the number of data points assigned to them}
+		\label{fig:kmVis250}
+	\end{figure}
+
+	\begin{enumerate}
+		\item Figure \ref{fig:kmErr250} shows the squared reconstruction error as a function of iteration number of the K-means algorithm with 250 means. As I mentioned above, this is the squared reconstruction error for the rescaled projections of the data points onto the first 50 singular vectors.
+		\item Figure \ref{fig:kmAs250} gives the numbers of data points assigned to each of the means in descending order. Along the x-axis are the labels associated with each mean.
+		\item Figure \ref{fig:kmVis250} provides visualizations of a random selection of 16 of the 250 means. The top left image corresponds to the mean with the most points assigned to it and the one in the bottom left to the mean with the least. The images are sorted in descending order in the same order as one would read text (from top to bottom, left to right).
+	\end{enumerate}
+\end{enumerate}
+
+\subsection{Classification with K-means}
+\begin{enumerate}
+	\item For $K=16$, my 0/1 losses for the training and test sets are 0.313900 and 0.310600, respectively.
+	\item For $K=250$, my 0/1 losses for the training and test sets are 
+\end{enumerate}
 
 
 \end{document}

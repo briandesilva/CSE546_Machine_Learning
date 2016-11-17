@@ -9,6 +9,7 @@ from mnist import MNIST
 import os
 import time
 import matplotlib.pyplot as plt
+import matplotlib
 
 t1 = time.time()
 
@@ -38,38 +39,71 @@ test_label = np.array(test_label,dtype=int)
 # Returns the feature vector consisting of entries which are RBF kernels of x and
 # other data points in X. sigma parameterizes what counts as a "large" distance. Note
 # that as sigma goes to 0, approaches an elementwise indicator function
-def RBFVec(x,X,sigma):
-	return np.exp(-(np.linalg.norm(X-x,2,1)**2) / (2. * sigma ** 2))
+# def RBFVec(x,X,sigma):
+# 	return np.exp(-(np.linalg.norm(X-x,2,1)**2) / (2. * sigma ** 2))
+
+def RBFVec(x,X,X2,sigma):
+	return np.exp(-(X2 + np.sum(x**2) - 2. * X.dot(x)) / ((2. * sigma ** 2)))
+
+def FRBFVec(x,V,sigma):
+	return np.sin(V.dot(x) / sigma)
 
 # ---Stochastic Gradient---
 # 
 # Computes an approximate gradient of the square loss function using sample points specified
 # by sampleIndices
-def stochGradient(Y,X,W,reg,sampleIndices,sigma):
+def stochGradient(Y,X,V,W,reg,sampleIndices,sigma):
 	output = np.zeros(np.prod(W.shape))
 	labels = np.arange(0,10)
 	for ii in range(0,sampleIndices.shape[0]):
-		output += 2. * np.kron(W.dot(RBFVec(X[sampleIndices[ii],:],X,sigma)) - (Y[sampleIndices[ii]]==labels).astype(int),RBFVec(X[sampleIndices[ii],:],X,sigma))
-	return output.reshape(W.shape) + reg * W
+		rbf = FRBFVec(X[sampleIndices[ii],:],V,sigma)
+		output += np.kron(W.dot(rbf) - (Y[sampleIndices[ii]]==labels).astype(int),rbf)
+	return 2. * output.reshape(W.shape) + reg * W
 
 # ---0/1 loss---
 # 
 # Computes the 0/1 loss
-def z1Loss(Y,X,w,sigma):
+def z1Loss(Y,X,V,w,sigma):
 	# Get predictions for each point
 	model_out = np.empty(Y.shape[0])
 	for k in range(0,Y.shape[0]):
-		model_out[k] = np.argmax(w.dot(RBFVec(X[k,:],X,sigma)))
+		model_out[k] = np.argmax(w.dot(FRBFVec(X[k,:],V,sigma)))
 	return (1.0 * np.count_nonzero(model_out - Y)) / Y.shape[0]
 
 # ---Square loss---
 # 
 # square loss for this problem
-def squareLoss(Y,X,W,reg,sigma):
+def squareLoss(Y,X,V,W,reg,sigma):
 	total = 0.0
+	labels = np.arange(0,10)
 	for k in range(0,Y.shape[0]):
-		total += np.linalg.norm((np.arange(0,10)==Y[k]).astype(int) - W.dot(RBFVec(X[k,:],X,sigma))) ** 2
-	return total + reg * np.linalg.norm(W,'fro') ** 2 / 2.
+		total += np.sum(((labels==Y[k]).astype(int) - W.dot(FRBFVec(X[k,:],V,sigma))) ** 2)
+	return total + reg * np.sum(W**2) / 2.
+
+# ---0/1 and square loss---
+# 
+# Gets the 0/1 and square losses simultaneously so we don't have to recompute feature vectors
+# Doe this for both weights and average weights over last epoch
+def getLoss(Y,X,V,W,WAvg,reg,sigma):
+	model_out = np.empty(Y.shape[0])
+	model_outAvg = np.empty(Y.shape[0])
+	total = 0.
+	totalAvg = 0.
+	labels = np.arange(10)
+	for k in range(Y.shape[0]):
+		rbf = FRBFVec(X[k,:],V,sigma)
+		model_out[k] = np.argmax(W.dot(rbf))
+		total += np.sum(((labels==Y[k]).astype(int) - W.dot(rbf)) ** 2)
+		model_outAvg[k] = np.argmax(WAvg.dot(rbf))
+		totalAvg += np.sum(((labels==Y[k]).astype(int) - WAvg.dot(rbf)) ** 2)
+	z1_out = (1.0 * np.count_nonzero(model_out - Y)) / Y.shape[0]
+	sq_out = total + reg * np.sum(W**2) / 2.
+	z1_outAvg = (1.0 * np.count_nonzero(model_outAvg - Y)) / Y.shape[0]
+	sq_outAvg = totalAvg + reg * np.sum(WAvg**2) / 2.
+	return (sq_out,z1_out,sq_outAvg,z1_outAvg)
+
+
+
 
 
 # times = np.empty(15)
@@ -83,126 +117,178 @@ def squareLoss(Y,X,W,reg,sigma):
 # 	times[it] = time.time() - t
 # 	it += 1
 
+# t = time.time()
+# for k in range(1000):
+# 	n = np.sum(W**2,1)
+
+# print "Time elapsed: %f" %(time.time() - t)
 
 
-t = time.time()
-z = z1Loss(train_label,trainProj,W,sigma)
-print "Elapsed time: %f"%(time.time()-t)
+
+# t = time.time()
+# for k in range(0,train_label.shape[0]):
+# 	h = np.linalg.norm((labels==train_label[k]).astype(int) - W.dot(RBFVec(trainProj[k,:],trainProj,X2,sigma))) ** 2
+
+# print "Elapsed time: %f"%(time.time()-t)
 
 
+# n = np.linalg.norm((np.arange(0,10)==train_label[3]).astype(int) - W.dot(RBFVec(trainProj[3,:],trainProj,X2,sigma))) ** 2
+# rbf = RBFVec(trainProj[5,:],trainProj,Xnorm,sigma)
+# rbf = RBFVec(trainProj[3,:],trainProj,sigma)
+# z = z1Loss(train_label,trainProj,W,sigma)
 # g = stochGradient(train_label,trainProj,W,0.0,sampleIndices[:1],sigma)
 
 # w = W.dot(RBFVec(trainProj[10,:],trainProj,sigma))
 
-# # ---Stochastic gradient descent---
-# # 
-# # Stochastic gradient descent method (square loss)
-# def SGD(Ytrain,Ytest,Xtrain,Xtest,reg,nClasses,sigma,batchSize=100,numEpochs=10,TOL=1.e-5,w=None):
-# 	t3 = time.time()
-# 	if w is None:
-# 		w = np.zeros((nClasses,np.shape(Ytrain)[0]))	# Note: this changed from before
+# ---Stochastic gradient descent---
+# 
+# Stochastic gradient descent method (square loss)
+# 
+# -YTrain is an array of labels for training set
+# -YTest is an array of labels for test set
+# -XTrain is the data points for training set
+# -XTest is the data points for test set
+# -V is the set of vectors used to produce the Fourier features with the FRBF function
+# -sigma is a parameter in the RBF and FRBF kernels
+# -reg is the regularization parameter
+# -nClasses is the number of classes into which the data should be classified
+#
+# 
+def SGD(YTrain,YTest,XTrain,XTest,V,sigma,reg,nClasses,batchSize=100,numEpochs=10,TOL=1.e-5,w=None):
+	t3 = time.time()
+	if w is None:
+		w = np.zeros((nClasses,np.shape(YTrain)[0]))	# Note: this changed from before
 
-# 	# wOld = np.zeros(w.shape)
-# 	N = Xtrain.shape[0]
-# 	num = 1.e-5
-# 	step = num
-# 	outputCond = 15000 / batchSize
-# 	wAvg = np.zeros(w.shape)
+	# wOld = np.zeros(w.shape)
+	N = XTrain.shape[0]
+	num = 1.e-5 / 2.
+	step = num
+	wAvg = np.zeros(w.shape)
 
-# 	squareLossTrain = np.empty(numEpochs + 1)
-# 	squareLossTest = np.empty(numEpochs + 1)
-# 	z1LossTrain = np.empty(numEpochs + 1)
-# 	z1LossTest = np.empty(numEpochs + 1)
+	squareLossTrain = np.zeros(numEpochs + 1)
+	squareLossTest = np.zeros(numEpochs + 1)
+	z1LossTrain = np.zeros(numEpochs + 1)
+	z1LossTest = np.zeros(numEpochs + 1)
 
-# 	squareLossTrainAvg = np.empty(numEpochs + 1)
-# 	squareLossTestAvg = np.empty(numEpochs + 1)
-# 	z1LossTrainAvg = np.empty(numEpochs + 1)
-# 	z1LossTestAvg = np.empty(numEpochs + 1)	
+	squareLossTrainAvg = np.zeros(numEpochs + 1)
+	squareLossTestAvg = np.zeros(numEpochs + 1)
+	z1LossTrainAvg = np.zeros(numEpochs + 1)
+	z1LossTestAvg = np.zeros(numEpochs + 1)
+
+	# X2Train = np.sum(XTrain**2,1)
+	# X2Test = np.sum(XTest**2,1)
+
+	# Loop over epochs
+	for it in range(0,numEpochs):
+
+		t5 = time.time()
+		# Check square loss and 0/1 loss every time we pass through all the points
+		(squareLossTrain[it],z1LossTrain[it],squareLossTrainAvg[it],z1LossTrainAvg[it]) = getLoss(YTrain,XTrain,V,w,wAvg,reg,sigma)
+		(squareLossTest[it],z1LossTest[it],squareLossTestAvg[it],z1LossTestAvg[it]) = getLoss(YTest,XTest,V,w,wAvg,reg,sigma)
+
+		# squareLossTrain[it] = squareLoss(YTrain,XTrain,V,w,reg,sigma)
+		# squareLossTest[it] = squareLoss(YTest,XTest,V,w,reg,sigma)
+		# z1LossTrain[it] = z1Loss(YTrain,XTrain,V,w,sigma)
+		# z1LossTest[it] = z1Loss(YTest,XTest,V,w,sigma)
+		t6 = time.time()
+		print "Time to compute the square loss: %f"%(t6-t5)
+
+		# squareLossTrainAvg[it] = squareLoss(YTrain,XTrain,V,wAvg,reg,sigma)
+		# squareLossTestAvg[it] = squareLoss(YTest,XTest,V,wAvg,reg,sigma)
+		# z1LossTrainAvg[it] = z1Loss(YTrain,XTrain,V,wAvg,sigma)
+		# z1LossTestAvg[it] = z1Loss(YTest,XTest,V,wAvg,sigma)
 
 
-# 	# Loop over epochs
-# 	for it in range(0,numEpochs):
+		print "Square loss at iteration %d (w): %f"%(it,squareLossTrain[it])
+		# print "0/1 loss at iteration %d (w): %f"%(it,z1LossTrain[it])
+		# print "Square loss at iteration %d (wAvg): %f"%(it,squareLossTrainAvg[it])
+		# print "0/1 loss at iteration %d (wAvg): %f"%(it,z1LossTrainAvg[it])
 
-# 		t5 = time.time()
-# 		# Check square loss and 0/1 loss every time we pass through all the points
-# 		squareLossTrain[it] = squareLoss(Ytrain,Xtrain,w,reg,sigma)
-# 		# squareLossTest[it] = squareLoss(Ytest,Xtest,w,reg,sigma)
-# 		# z1LossTrain[it] = z1Loss(Ytrain,Xtrain,w,sigma)
-# 		# z1LossTest[it] = z1Loss(Ytest,Xtest,w,sigma)
-# 		t6 = time.time()
-# 		print "Time to compute the square loss: %f"%(t5-t6)
+		# Compute new order in which to visit indices
+		sampleIndices = np.random.permutation(N)
 
-# 		squareLossTrainAvg[it] = squareLoss(Ytrain,Xtrain,wAvg,reg,sigma)
-# 		# squareLossTestAvg[it] = squareLoss(Ytest,Xtest,wAvg,reg,sigma)
-# 		# z1LossTrainAvg[it] = z1Loss(Ytrain,Xtrain,wAvg,sigma)
-# 		# z1LossTestAvg[it] = z1Loss(Ytest,Xtest,wAvg,sigma)
+		# Zero out wAvg for next epoch
+		wAvg = np.zeros(w.shape)
 
+		# Loop over all the points
+		for subIt in range(0,N / batchSize):
+			# Compute the gradient
+			currentIndices = sampleIndices[subIt*batchSize:(subIt+1)*batchSize]
+			# t7 = time.time()
+			newGrad = stochGradient(YTrain,XTrain,V,w,reg,currentIndices,sigma)
+			# t8 = time.time()
+			# print "Time to compute the gradient: %f"%(t8-t7)
 
-# 		print "Square loss at iteration (w) %d: %f"%(it,squareLossTrain[it])
-# 		# print "0/1 loss at iteration (w) %d: %f"%(it,z1LossTrain[it])
-# 		print "Square loss at iteration (wAvg) %d: %f"%(it,squareLossTrainAvg[it])
-# 		# print "0/1 loss at iteration (wAvg) %d: %f"%(it,z1LossTrainAvg[it])
+			# Precompute a possibly expensive quantity
+			gradNorm = np.sqrt(np.sum(newGrad**2))
+			# print "Order of gradient: %f\n" %np.log10(gradNorm)
 
-# 		# Compute new order in which to visit indices
-# 		sampleIndices = np.random.permutation(N)
+			# Take a step in the negative gradient direction
+			step = num / np.sqrt(it+1)
+			w = w - step * newGrad
+			wAvg += w
 
-# 		# Zero out wAvg for next epoch
-# 		wAvg = np.zeros(w.shape)
+			if gradNorm < TOL:
 
-# 		# Loop over all the points
-# 		for subIt in range(0,N / batchSize):
-# 			# Compute the gradient
-# 			currentIndices = sampleIndices[subIt*batchSize:(subIt+1)*batchSize]
-# 			t7 = time.time()
-# 			newGrad = stochGradient(Ytrain,Xtrain,w,reg,currentIndices,sigma)
-# 			t8 = time.time()
-# 			print "Time to compute the gradient: %f"%(t7-t8)
+				# (squareLossTrain[it],z1LossTrain[it]) = getLoss(YTrain,XTrain,V,w,reg,sigma)
+				# (squareLossTest[it],z1LossTest[it]) = getLoss(YTest,XTest,V,w,reg,sigma)
 
-# 			# Precompute a possibly expensive quantity
-# 			gradNorm = np.linalg.norm(newGrad,'fro')
+				(squareLossTrain[it],z1LossTrain[it],squareLossTrainAvg[it],z1LossTrainAvg[it]) = getLoss(YTrain,XTrain,V,w,wAvg,reg,sigma)
+				(squareLossTest[it],z1LossTest[it],squareLossTestAvg[it],z1LossTestAvg[it]) = getLoss(YTest,XTest,V,w,wAvg,reg,sigma)
 
-# 			# Take a step in the negative gradient direction
-# 			step = num / np.sqrt(it+1)
-# 			w = w - step * newGrad
-# 			wAvg += w
+				# (squareLossTrainAvg[it],z1LossTrainAvg[it]) = getLoss(YTrain,XTrain,V,wAvg,reg,sigma)
+				# (squareLossTestAvg[it],z1LossTestAvg[it]) = getLoss(YTest,XTest,V,wAvg,reg,sigma)
 
-# 			if gradNorm < TOL:
-# 				squareLossTrain[it] = squareLoss(Ytrain,Xtrain,w,reg,sigma)
-# 				squareLossTest[it] = squareLoss(Ytest,Xtest,w,reg,sigma)
-# 				z1LossTrain[it] = z1Loss(Ytrain,Xtrain,w,sigma)
-# 				z1LossTest[it] = z1Loss(Ytest,Xtest,w,sigma)
+				# squareLossTrain[it] = squareLoss(YTrain,XTrain,V,w,reg,sigma)
+				# squareLossTest[it] = squareLoss(YTest,XTest,V,w,reg,sigma)
+				# z1LossTrain[it] = z1Loss(YTrain,XTrain,V,w,sigma)
+				# z1LossTest[it] = z1Loss(YTest,XTest,V,w,sigma)
 
-# 				squareLossTrainAvg[it] = squareLoss(Ytrain,Xtrain,wAvg,reg,sigma)
-# 				squareLossTestAvg[it] = squareLoss(Ytest,Xtest,wAvg,reg,sigma)
-# 				z1LossTrainAvg[it] = z1Loss(Ytrain,Xtrain,wAvg,sigma)
-# 				z1LossTestAvg[it] = z1Loss(Ytest,Xtest,wAvg,sigma)
-# 				print "Order of gradient: %f\n" %np.log10(gradNorm)
-# 				wAvg /= (subIt + 1)
-# 				break
+				# squareLossTrainAvg[it] = squareLoss(YTrain,XTrain,V,wAvg,reg,sigma)
+				# squareLossTestAvg[it] = squareLoss(YTest,XTest,V,wAvg,reg,sigma)
+				# z1LossTrainAvg[it] = z1Loss(YTrain,XTrain,V,wAvg,sigma)
+				# z1LossTestAvg[it] = z1Loss(YTest,XTest,V,wAvg,sigma)
+				print "Order of gradient: %f\n" %np.log10(gradNorm)
+				wAvg /= (subIt + 1)
+				break
 
-# 		# Compute average weight over previous epoch
-# 		wAvg /= (N / batchSize)
+		# Compute average weight over previous epoch
+		wAvg /= (N / batchSize)
+		
+		# Print time to complete an epoch
+		t9 = time.time()
+		print "Time elapsed during epoch %d: %f" %(it,t9-t6)
 
-# 		# Print out size of the gradient
-# 		print "Order of gradient: %f\n" %np.log10(gradNorm)
+		# Print out size of the gradient
+		print "Order of gradient: %f\n" %np.log10(gradNorm)
 
-# 	if (it == MAX_ITS-1):
-# 		print "Warning: Maximum number of iterations reached."
+	if (it == numEpochs-1):
+		print "Warning: Maximum number of iterations reached."
 
-# 	squareLossTrain[it+1] = squareLoss(Ytrain,Xtrain,w,reg,sigma) 
-# 	# squareLossTest[it+1] = squareLoss(Ytest,Xtest,w,reg,sigma)
-# 	# z1LossTrain[it+1] = z1Loss(Ytrain,Xtrain,w,sigma)
-# 	# z1LossTest[it+1] = z1Loss(Ytest,Xtest,w,sigma)
+	(squareLossTrain[it+1],z1LossTrain[it+1],squareLossTrainAvg[it+1],z1LossTrainAvg[it+1]) = getLoss(YTrain,XTrain,V,w,wAvg,reg,sigma)
+	(squareLossTest[it+1],z1LossTest[it+1],squareLossTestAvg[it+1],z1LossTestAvg[it+1]) = getLoss(YTest,XTest,V,w,wAvg,reg,sigma)
+	# (squareLossTrain[it+1],z1LossTrain[it+1]) = getLoss(YTrain,XTrain,V,w,reg,sigma)
+	# (squareLossTest[it+1],z1LossTest[it+1]) = getLoss(YTest,XTest,V,w,reg,sigma)
 
-# 	squareLossTrainAvg[it+1] = squareLoss(Ytrain,Xtrain,wAvg,reg,sigma)
-# 	# squareLossTestAvg[it+1] = squareLoss(Ytest,Xtest,wAvg,reg,sigma)
-# 	# z1LossTrainAvg[it+1] = z1Loss(Ytrain,Xtrain,wAvg,sigma)
-# 	# z1LossTestAvg[it+1] = z1Loss(Ytest,Xtest,wAvg,sigma)
+	# (squareLossTrainAvg[it+1],z1LossTrainAvg[it+1]) = getLoss(YTrain,XTrain,V,wAvg,reg,sigma)
+	# (squareLossTestAvg[it+1],z1LossTestAvg[it+1]) = getLoss(YTest,XTest,V,wAvg,reg,sigma)
 
-# 	t4 = time.time()
-# 	print "Time to perform %d iterations of SGD with batch size %d: %f"%(it+1,batchSize,t4-t3)
-# 	return (w,squareLossTrain[:(it+2)],z1LossTrain[:(it+2)],squareLossTest[:(it+2)],z1LossTest[:(it+2)],squareLossTrainAvg[:(it+2)],z1LossTrainAvg[:(it+2)],squareLossTestAvg[:(it+2)],z1LossTestAvg[:(it+2)])
+	# Out with the old!
+	# squareLossTrain[it+1] = squareLoss(YTrain,XTrain,V,w,reg,sigma)
+	# squareLossTest[it+1] = squareLoss(YTest,XTest,V,w,reg,sigma)
+	# z1LossTrain[it+1] = z1Loss(YTrain,XTrain,V,w,sigma)
+	# z1LossTest[it+1] = z1Loss(YTest,XTest,V,w,sigma)
 
+	# squareLossTrainAvg[it+1] = squareLoss(YTrain,XTrain,V,wAvg,reg,sigma)
+	# squareLossTestAvg[it+1] = squareLoss(YTest,XTest,V,wAvg,reg,sigma)
+	# z1LossTrainAvg[it+1] = z1Loss(YTrain,XTrain,V,wAvg,sigma)
+	# z1LossTestAvg[it+1] = z1Loss(YTest,XTest,V,wAvg,sigma)
+
+	t4 = time.time()
+	print "Time to perform %d epochs of SGD with batch size %d: %f"%(it+1,batchSize,t4-t3)
+	
+	# TODO: change output to wAvg
+	return (w,wAvg,squareLossTrain[:(it+2)],z1LossTrain[:(it+2)],squareLossTest[:(it+2)],z1LossTest[:(it+2)],squareLossTrainAvg[:(it+2)],z1LossTrainAvg[:(it+2)],squareLossTestAvg[:(it+2)],z1LossTestAvg[:(it+2)])
 
 
 # -------------------------------------------------------------------------------------
@@ -233,54 +319,64 @@ numSamples = 100
 dists = 0.
 inds = np.empty(2)
 for k in range(0,numSamples):
-	inds = np.random.choice(np.arange(0,N),2)	# Get a random pair of data points
-	dists += np.linalg.norm(trainProj[inds[0],:] - trainProj[inds[1],:] ,2)
+	inds = np.random.choice(np.arange(0,N),2,replace=False)	# Get a random pair of data points
+	dists += np.sqrt(np.sum((trainProj[inds[0],:] - trainProj[inds[1],:])**2))
 
 # Cheat a little and use the empirical mean distance between points
 dists /= numSamples
 
+# Generate or load random vectors for features
+if os.path.isfile("feats.npy"):
+	feats = np.load("feats.npy")
+else:
+	feats = np.random.randn(trainProj.shape[0],trainProj.shape[1])
+	np.save("feats",feats)
+ 
 # Set parameters
+# --------------------------------------------------------------------------
 sigma = dists / 2.
 nClasses = 10		# Number of classes
-reg = 0.0			# Regularization parameter
-batchSize = 100		# Batch size for SGD
+reg = 0.			# Regularization parameter
+batchSize = 10		# Batch size for SGD
 numEpochs = 10		# Number of epochs to go through before terminating
+# --------------------------------------------------------------------------
 
 print "Time elapsed during setup: %f" %(time.time() - t1)
 
 
 # Run the method
-(w, squareLossTrain, z1LossTrain,
+(w, wAvg, squareLossTrain, z1LossTrain,
 squareLossTest, z1LossTest,
 squareLossTrainAvg, z1LossTrainAvg,
 squareLossTestAvg, z1LossTestAvg) = SGD(train_label,
 										test_label,
 										trainProj,
 										testProj,
+										feats,
+										sigma,
 										reg,
 										nClasses,
-										sigma,
 										batchSize,
 										numEpochs)
 
 
 # Plot square loss on test and train sets
+matplotlib.rcParams.update({'font.size' : 20})
 n = len(squareLossTrain)-1
 outputCond = train_label.shape[0] / batchSize
 its = range(0,n*outputCond+1,outputCond)
 plt.figure(1)
-plt.plot(its,squareLossTrain,'b-o',its,squareLossTrainAvg,'k-o',
-	its,squareLossTest,'r-x',its,squareLossTestAvg,'g-x')
+plt.plot(its,squareLossTrain,'b-o',its,squareLossTrainAvg,'k--o',
+	its,squareLossTest,'r-x',its,squareLossTestAvg,'g--x',linewidth=1.5)
 plt.xlabel('Iteration')
 plt.ylabel('Square loss')
 plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
 # plt.title('Square loss')
-plt.show()
 
 # Plot 0/1 loss on test and train sets
 plt.figure(2)
-plt.plot(its,z1LossTrain,'b-o',its,z1LossTrainAvg,'k-o',
-	its,z1LossTest,'r-x',its,z1LossTestAvg,'g-x')
+plt.plot(its[1:],z1LossTrain[1:],'b-o',its[1:],z1LossTrainAvg[1:],'k--o',
+	its[1:],z1LossTest[1:],'r-x',its[1:],z1LossTestAvg[1:],'g--x',linewidth=1.5)
 plt.xlabel('Iteration')
 plt.ylabel('0/1 loss')
 plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
@@ -310,7 +406,7 @@ print "0/1 loss (test): %f" % (z1LossTestAvg[-1])
 # 	nClasses = W.shape[0]+1
 # 	output = np.zeros(W.shape)
 
-# 	# sampleIndices = np.random.choice(np.arange(0,N),batchSize)
+# 	# sampleIndices = np.random.choice(np.arange(0,N),batchSize,replace=False)
 # 	P = getAProbs(X[sampleIndices,:],W)[1:,:]
 
 # 	for ii in range(nClasses-1):
