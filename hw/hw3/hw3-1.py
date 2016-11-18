@@ -57,7 +57,7 @@ for k in range(0,50):
 	fre[k] = 1. - np.sum(eigs[:(k+1)]) / eigSum
 
 plt.figure(1)
-plt.plot(range(0,50),fre,'b-o')
+plt.plot(range(1,51),fre,'b-o')
 plt.xlabel('Number of PCA directions used')
 plt.ylabel('Fractional reconstruction error')
 plt.title('Fractional reconstrution error')
