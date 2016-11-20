@@ -120,7 +120,7 @@ def getLoss(Y,X,V,W,WAvg,reg,sigma):
 def SGD(YTrain,YTest,XTrain,XTest,V,sigma,reg,nClasses,batchSize=100,numEpochs=10,TOL=1.e-5,w=None):
 	t3 = time.time()
 	if w is None:
-		w = np.zeros((nClasses,np.shape(YTrain)[0]))	# Note: this changed from before
+		w = np.zeros((nClasses,YTrain.shape[0]))	# Note: this changed from before
 
 	# wOld = np.zeros(w.shape)
 	N = XTrain.shape[0]

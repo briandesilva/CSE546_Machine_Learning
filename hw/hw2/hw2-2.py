@@ -395,8 +395,9 @@ def SGD(Ytrain,Ytest,Xtrain,Xtest,reg,nClasses,batchSize=1,w=None,MAX_ITS=150*10
 	z1LossTest = np.empty(MAX_ITS / outputCond + 1)
 
 	for it in range(0,MAX_ITS):
+		# t3 = time.time()
 		newGrad = stochGradient(Ytrain,Xtrain,w,reg,batchSize)
-		
+		# t4 = time.time()
 
 		# print "Time elapsed computing gradient (iteration %d): %f"%(it,t4-t3)
 
@@ -455,7 +456,7 @@ def SGD(Ytrain,Ytest,Xtrain,Xtest,reg,nClasses,batchSize=1,w=None,MAX_ITS=150*10
 # # Set some parameters
 # nClasses = 10		# Number of classes
 # reg = 1.0			# Regularization parameter
-# batchSize = 1		# Number of points to sample to approximate gradient
+# batchSize = 100		# Number of points to sample to approximate gradient
 
 # # Add column of all 1's to simulate offset w0
 # # train_img = np.concatenate((np.ones((train_img.shape[0],1)),train_img),axis=1)
