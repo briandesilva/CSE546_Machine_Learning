@@ -72,7 +72,7 @@ def stochGradient(Y,X,V,W,reg,sampleIndices):
 	nClasses = W.shape[0]+1
 	output = np.zeros(W.shape)
 
-	P = getAProbs(X[sampleIndices,:],W,V,sigma)[1:,:]
+	P = getAProbs(X[sampleIndices,:],W,V)[1:,:]
 	rbf = NNFeatVec(X[sampleIndices,:].T,V).T
 
 	for ii in range(nClasses-1):
@@ -203,7 +203,7 @@ def SGD(YTrain,YTest,XTrain,XTest,V,reg,nClasses,batchSize=100,numEpochs=10,TOL=
 
 	# wOld = np.zeros(w.shape)
 	N = XTrain.shape[0]
-	num = 1.e-4
+	num = 1.e-6
 	step = num
 	wAvg = np.zeros(w.shape)
 
