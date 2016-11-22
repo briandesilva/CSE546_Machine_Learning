@@ -164,7 +164,7 @@ def getLoss(Y,X,V,W,WAvg,reg,sigma):
 	PAvg[0,:] = np.exp(denomAvg)
 	for j in range(1,k):
 		P[j,:] = np.exp(WX[j-1,:] + denom)
-		PAvg[j,:] = np.exp(WAvgX[j-1,:]+denom)
+		PAvg[j,:] = np.exp(WAvgX[j-1,:]+denomAvg)
 
 	# Compute 0/1 loss
 	model_out = np.argmax(P,0)
@@ -240,7 +240,8 @@ def SGD(YTrain,YTest,XTrain,XTest,V,sigma,reg,nClasses,batchSize=100,numEpochs=1
 
 	# wOld = np.zeros(w.shape)
 	N = XTrain.shape[0]
-	num = 1.e-4
+	# num = 1.e-1 / 4.
+	num = 1.e-1 / 8.
 	step = num
 	wAvg = np.zeros(w.shape)
 
@@ -267,21 +268,22 @@ def SGD(YTrain,YTest,XTrain,XTest,V,sigma,reg,nClasses,batchSize=100,numEpochs=1
 		t5 = time.time()
 		# logLossTrain[it] = logLoss(YTrain[randTrainSet],XTrain[randTrainSet],V,w,reg,sigma)
 		# Check log loss and 0/1 loss every time we pass through all the points
-		(logLossTrain[it],z1LossTrain[it],logLossTrainAvg[it],z1LossTrainAvg[it]) = getLoss(YTrain[randTrainSet],XTrain[randTrainSet],V,w,wAvg,reg,sigma)
+		(logLossTrain[it],z1LossTrain[it],logLossTrainAvg[it],z1LossTrainAvg[it]) = getLoss(YTrain[randTrainSet],XTrain[randTrainSet,:],V,w,wAvg,reg,sigma)
 		(logLossTest[it],z1LossTest[it],logLossTestAvg[it],z1LossTestAvg[it]) = getLoss(YTest,XTest,V,w,wAvg,reg,sigma)
 
 		t6 = time.time()
 		print "Time to compute the log loss: %f"%(t6-t5)
 		print "Log loss at iteration %d (w): %f"%(it,logLossTrain[it])
-		# print "0/1 loss at iteration %d (w): %f"%(it,z1LossTrain[it])
+		print "0/1 loss at iteration %d (w): %f"%(it,z1LossTrain[it])
 		# print "Log loss at iteration %d (wAvg): %f"%(it,logLossTrainAvg[it])
 		# print "0/1 loss at iteration %d (wAvg): %f"%(it,z1LossTrainAvg[it])
 
 		# Compute new order in which to visit indices
 		sampleIndices = np.random.permutation(N)
 
-		# Zero out wAvg for next epoch
-		wAvg = np.zeros(w.shape)
+		# Reset wAvg for next epoch
+		# w = np.copy(wAvg)
+		wAvg = np.copy(w)
 
 		# Loop over all the points
 		for subIt in range(0,N / batchSize):
@@ -296,7 +298,8 @@ def SGD(YTrain,YTest,XTrain,XTest,V,sigma,reg,nClasses,batchSize=100,numEpochs=1
 			# Take a step in the negative gradient direction
 			step = num / np.sqrt(subIt+1)
 			w = w - step * newGrad
-			totalSteps += 1
+			wAvg += w
+			# totalSteps +=1
 
 			if gradNorm < TOL:
 				# Method has converged, so record loss and exit
@@ -309,7 +312,7 @@ def SGD(YTrain,YTest,XTrain,XTest,V,sigma,reg,nClasses,batchSize=100,numEpochs=1
 
 		# Compute average weight over previous epoch
 		wAvg /= (N / batchSize)
-		w = wAvg
+		
 		
 		# Print time to complete an epoch
 		t9 = time.time()
@@ -321,8 +324,8 @@ def SGD(YTrain,YTest,XTrain,XTest,V,sigma,reg,nClasses,batchSize=100,numEpochs=1
 	if (it == numEpochs-1):
 		print "Warning: Maximum number of iterations reached."
 
-	logLossTrain[it+1] = logLoss(YTrain[randTrainSet],XTrain[randTrainSet],V,w,reg,sigma)
-	(logLossTrain[it+1],z1LossTrain[it+1],logLossTrainAvg[it+1],z1LossTrainAvg[it+1]) = getLoss(YTrain[randTrainSet],XTrain[randTrainSet],V,w,wAvg,reg,sigma)
+	# logLossTrain[it+1] = logLoss(YTrain[randTrainSet],XTrain[randTrainSet],V,w,reg,sigma)
+	(logLossTrain[it+1],z1LossTrain[it+1],logLossTrainAvg[it+1],z1LossTrainAvg[it+1]) = getLoss(YTrain,XTrain,V,w,wAvg,reg,sigma)
 	(logLossTest[it+1],z1LossTest[it+1],logLossTestAvg[it+1],z1LossTestAvg[it+1]) = getLoss(YTest,XTest,V,w,wAvg,reg,sigma)
 
 	t4 = time.time()
@@ -378,7 +381,7 @@ sigma = dists / 2.
 nClasses = 10		# Number of classes
 reg = 1.			# Regularization parameter
 batchSize = 10		# Batch size for SGD
-numEpochs = 20		# Number of epochs to go through before terminating
+numEpochs = 25		# Number of epochs to go through before terminating
 # --------------------------------------------------------------------------
 
 print "Time elapsed during setup: %f" %(time.time() - t1)
@@ -417,6 +420,9 @@ plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
 plt.figure(2)
 plt.plot(its[1:],z1LossTrain[1:],'b-o',its[1:],z1LossTrainAvg[1:],'k--o',
 	its[1:],z1LossTest[1:],'r-x',its[1:],z1LossTestAvg[1:],'g--x',linewidth=1.5)
+
+plt.plot(its[1:19],z1LossTrain[1:19],'b-o',its[1:19],z1LossTrainAvg[1:19],'k--o',
+	its[1:19],z1LossTest[1:19],'r-x',its[1:19],z1LossTestAvg[1:19],'g--x',linewidth=1.5)
 plt.xlabel('Iteration')
 plt.ylabel('0/1 loss')
 plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
@@ -424,7 +430,7 @@ plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
 plt.show()
 
 # Print out final 0/1 and log loss
-print "Log loss (training): %f" % (logLossTrainAvg[-1])
-print "0/1 loss (training): %f" % (z1LossTrainAvg[-1])
-print "Log loss (test): %f" % (logLossTestAvg[-1])
-print "0/1 loss (test): %f" % (z1LossTestAvg[-1])
+print "Log loss (training): %f" % (logLossTrain[-1])
+print "0/1 loss (training): %f" % (z1LossTrain[-1])
+print "Log loss (test): %f" % (logLossTest[-1])
+print "0/1 loss (test): %f" % (z1LossTest[-1])
