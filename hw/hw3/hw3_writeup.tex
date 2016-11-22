@@ -97,7 +97,7 @@
 
 % Problem 0
 \section{Collaborators and Acknowledgements}
-
+I collaborated with Kelsey Maass on problem two.
 
 % Problem 1
 \section{PCA and reconstruction}
@@ -244,9 +244,9 @@
 % Problem 2
 \section{Let's get to state of the art on MNIST!}
 \subsection{Least Squares}
-The code for this problem is contained in \texttt{hw3-2.py}.
+The code for this problem is contained in \texttt{hw3-2-1.py}.
 \begin{enumerate}
-	\item To obtain the results presented in this section I used the following parameters: a mini-batch size of 10, no regularization, stochastic gradient descent with a learning rate of $10^{-5} / (2\sqrt{t+1})$, where $t$ is the iteration, and initial weights all 0. I used the Fourier features with a kernel bandwidth that is 1/2 the approximate mean distance between points in the dataset. In order to approximate this distance I randomly sampled 100 pairs of points from the training data and took the mean of their Euclidean distances from one another. To obtain the plots below I ran SGD for 10 epochs.
+	\item To obtain the results presented in this section I used the following parameters: a mini-batch size of 10, no regularization, stochastic gradient descent with a learning rate of $10^{-5} / (2\sqrt{t+1})$, where $t$ is the epoch, and initial weights all 0. I used the Fourier features with a kernel bandwidth that is 1/2 the approximate mean distance between points in the dataset. In order to approximate this distance I randomly sampled 100 pairs of points from the training data and took the mean of their Euclidean distances from one another. This parameter was on the order of $10^3$. To obtain the plots below I ran SGD for 10 epochs.
 
 
 	\item
@@ -274,6 +274,53 @@ The code for this problem is contained in \texttt{hw3-2.py}.
 	\item After 10 epochs my final training squared loss was about 0.04036 and my final training 0/1 loss was 0.005100. Both of these numbers were computed using the average weights over the last epoch. The total number of misclassifications made with this weight vector was 306 (out of 60000).
 	\item After 10 epochs my final square loss on the test set was 0.06111 and my final 0/1 loss on this set was 0.013900. Both of these numbers were computed using the average weights over the last epoch. The total number of misclassifications made with this weight vector was 139 (out of 10000).
 
+\end{enumerate}
+
+\subsection{EXTRA CREDIT: Softmax Classification}
+\begin{enumerate}
+	\item For the results in this section I used a learning rate of $10^{-1} / 4\sqrt{t+1}$, where $t$ is the iteration within the current epoch, and a mini-batch size of 10. I also used a regularization parameter of 1. I could not get the method to do much beyond the first epoch, even after lots of experimentation with step sizes, batch sizes, and regularization parameters. Perhaps changing the bandwidth, $\sigma$, could have improved things, but the instructions said to use the same one as before. The code for this problem is in \texttt{hw3-2-2.py}.
+	\item 
+	\begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{logLossSoftmax30epoch}
+        \caption{The log loss of Stochastic gradient descent for the softmax classification problem applied to the Fourier features of the projected MNIST dataset as a function of iteration, starting at iteration 0}
+        \label{fig:logLossSoftmax30epoch}
+    \end{figure}
+    Figure \ref{fig:logLossSoftmax30epoch} plots the log loss for Stochastic gradient descent applied to the log likelihood using the Fourier features. Plotted are the log losses on the training and test sets for the regular and average weight vectors.
+    \item
+    \begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{z1LossSoftmax30epoch}
+        \caption{The 0/1 loss of Stochastic gradient descent for the softmax classification problem applied to the Fourier features of the projected MNIST dataset as a function of iteration, starting after an epoch has passed}
+        \label{fig:z1LossSoftmax30epoch}
+    \end{figure}
+    Figure \ref{fig:z1LossSoftmax30epoch} shows the 0/1 loss on the same problem for the training and test sets, computed with both the weight vectors and the epoch-averaged weights.
+    \item My final training log and 0/1 losses on this problem were 0.17606464 and 0.035783, respectively. This 0/1 loss corresponds to missing 2147 digits out of 60000.
+    \item My final testing log and 0/1 losses were 0.178957 and 0.038800, respectively. This 0/1 loss corresponds to 388 misses out of 10000 trials
+
+\end{enumerate}
+
+\subsection{EXTRA CREDIT: Back to those random Neural Net Features}
+\begin{enumerate}
+	\item For the results presented in this section I used a step-size of $10^-8 / \sqrt{1+t}$, where $t$ is the iteration number within the current epoch. I used stochastic gradient descent with a batch size of 10 for optimization and used a regularization constant of 1. 18 epochs were required to get the results below. The code for this problem is in \texttt{hw3-2-3.py}.
+	\item 
+	\begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{logLossNNFeats18Epochs}
+        \caption{The log loss of Stochastic gradient descent for the softmax classification problem applied to random neural net features of the projected MNIST dataset as a function of iteration, starting at iteration 0}
+        \label{fig:logLossNNFeats18Epochs}
+    \end{figure}
+    Figure \ref{fig:logLossNNFeats18Epochs} gives a plot of the decay of the log loss on the training and test sets, using both the actual weights and the epoch-averaged ones.
+    \item 
+    \begin{figure}
+        \centering
+        \includegraphics[width=.95\textwidth]{z1LossNNFeats18Epochs}
+        \caption{The 0/1 loss of Stochastic gradient descent for the softmax classification problem applied to random neural net features of the projected MNIST dataset as a function of iteration, starting at iteration 0}
+        \label{fig:z1LossNNFeats18Epochs}
+    \end{figure}
+    Figure \ref{fig:z1LossNNFeats18Epochs} is a visualization of the 0/1 loss for this problem, starting after an epoch has passed. Plotted are the 0/1 losses for the training and test data, with both the true weights and the epoch-averages.
+    \item The final log and 0/1 losses on the training set were 0.15810703 and 0.0204, respectively. This 0/1 loss corresponds to 1734 missclassified images out of 60000.
+    \item The final log and 0/1 losses on the test set were 0.25704783 and 0.0289, respectively. This 0/1 loss corresponds to 289 missclassifications out of 10000.
 \end{enumerate}
 
 % ---------------------------------

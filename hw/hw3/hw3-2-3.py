@@ -42,7 +42,9 @@ def NNFeatVec(x,V):
 	Vx[Vx < 0] = 0
 	return Vx
 
-# Gets probabilites P(y=l|x,w) for all (x,y)
+# ---Get all probabilities---
+# 
+# Gets softmax probabilites P(y=l|x,w) for all (x,y)
 # P(i,j) = P(y^j=i+1|x^i,w)
 def getAProbs(X,W,V):
 	k = W.shape[0]+1
@@ -127,7 +129,7 @@ def getLoss(Y,X,V,W,WAvg,reg):
 	PAvg[0,:] = np.exp(denomAvg)
 	for j in range(1,k):
 		P[j,:] = np.exp(WX[j-1,:] + denom)
-		PAvg[j,:] = np.exp(WAvgX[j-1,:]+denom)
+		PAvg[j,:] = np.exp(WAvgX[j-1,:]+denomAvg)
 
 	# Compute 0/1 loss
 	model_out = np.argmax(P,0)
@@ -143,43 +145,6 @@ def getLoss(Y,X,V,W,WAvg,reg):
 
 	return (log_out,z1_out,log_outAvg,z1_outAvg)
 
-
-
-
-
-# times = np.empty(15)
-# numPts = np.empty(15)
-# numPts[0:5] = np.arange(1,6)
-# numPts[5:] = np.arange(10,101,10)
-# it = 0
-# for k in numPts:
-# 	t = time.time()
-# 	stochGradient(train_label,trainProj,W,0.0,sampleIndices[:k],sigma)
-# 	times[it] = time.time() - t
-# 	it += 1
-
-# t = time.time()
-# for k in range(1000):
-# 	n = np.sum(W**2,1)
-
-# print "Time elapsed: %f" %(time.time() - t)
-
-
-
-# t = time.time()
-# for k in range(0,train_label.shape[0]):
-# 	h = np.linalg.norm((labels==train_label[k]).astype(int) - W.dot(RBFVec(trainProj[k,:],trainProj,X2,sigma))) ** 2
-
-# print "Elapsed time: %f"%(time.time()-t)
-
-
-# n = np.linalg.norm((np.arange(0,10)==train_label[3]).astype(int) - W.dot(RBFVec(trainProj[3,:],trainProj,X2,sigma))) ** 2
-# rbf = RBFVec(trainProj[5,:],trainProj,Xnorm,sigma)
-# rbf = RBFVec(trainProj[3,:],trainProj,sigma)
-# z = z1Loss(train_label,trainProj,W,sigma)
-# g = stochGradient(train_label,trainProj,W,0.0,sampleIndices[:1],sigma)
-
-# w = W.dot(RBFVec(trainProj[10,:],trainProj,sigma))
 
 
 # ---Stochastic gradient descent---
@@ -203,9 +168,9 @@ def SGD(YTrain,YTest,XTrain,XTest,V,reg,nClasses,batchSize=100,numEpochs=10,TOL=
 
 	# wOld = np.zeros(w.shape)
 	N = XTrain.shape[0]
-	num = 1.e-6
+	num = 1.e-8
 	step = num
-	wAvg = np.zeros(w.shape)
+	wAvg = np.copy(w)
 
 	logLossTrain = np.zeros(numEpochs + 1)
 	logLossTest = np.zeros(numEpochs + 1)
@@ -220,15 +185,11 @@ def SGD(YTrain,YTest,XTrain,XTest,V,reg,nClasses,batchSize=100,numEpochs=10,TOL=
 	# Random subsets of 10000 points at which to evaluate log loss
 	randTrainSet = np.random.choice(np.arange(YTrain.shape[0]),10000,replace=False)
 
-	# X2Train = np.sum(XTrain**2,1)
-	# X2Test = np.sum(XTest**2,1)
-
 	totalSteps = 0
 	# Loop over epochs
 	for it in range(0,numEpochs):
 
 		t5 = time.time()
-		# logLossTrain[it] = logLoss(YTrain[randTrainSet],XTrain[randTrainSet],V,w,reg)
 		# Check log loss and 0/1 loss every time we pass through all the points
 		(logLossTrain[it],z1LossTrain[it],logLossTrainAvg[it],z1LossTrainAvg[it]) = getLoss(YTrain[randTrainSet],XTrain[randTrainSet,:],V,w,wAvg,reg)
 		(logLossTest[it],z1LossTest[it],logLossTestAvg[it],z1LossTestAvg[it]) = getLoss(YTest,XTest,V,w,wAvg,reg)
@@ -236,15 +197,15 @@ def SGD(YTrain,YTest,XTrain,XTest,V,reg,nClasses,batchSize=100,numEpochs=10,TOL=
 		t6 = time.time()
 		print "Time to compute the log loss: %f"%(t6-t5)
 		print "Log loss at iteration %d (w): %f"%(it,logLossTrain[it])
-		# print "0/1 loss at iteration %d (w): %f"%(it,z1LossTrain[it])
+		print "0/1 loss at iteration %d (w): %f"%(it,z1LossTrain[it])
 		# print "Log loss at iteration %d (wAvg): %f"%(it,logLossTrainAvg[it])
 		# print "0/1 loss at iteration %d (wAvg): %f"%(it,z1LossTrainAvg[it])
 
 		# Compute new order in which to visit indices
 		sampleIndices = np.random.permutation(N)
 
-		# Zero out wAvg for next epoch
-		wAvg = np.zeros(w.shape)
+		# Reset wAvg for next epoch
+		wAvg = np.copy(w)
 
 		# Loop over all the points
 		for subIt in range(0,N / batchSize):
@@ -284,7 +245,6 @@ def SGD(YTrain,YTest,XTrain,XTest,V,reg,nClasses,batchSize=100,numEpochs=10,TOL=
 	if (it == numEpochs-1):
 		print "Warning: Maximum number of iterations reached."
 
-	# logLossTrain[it+1] = logLoss(YTrain[randTrainSet],XTrain[randTrainSet],V,w,reg,sigma)
 	(logLossTrain[it+1],z1LossTrain[it+1],logLossTrainAvg[it+1],z1LossTrainAvg[it+1]) = getLoss(YTrain,XTrain,V,w,wAvg,reg)
 	(logLossTest[it+1],z1LossTest[it+1],logLossTestAvg[it+1],z1LossTestAvg[it+1]) = getLoss(YTest,XTest,V,w,wAvg,reg)
 
@@ -315,18 +275,6 @@ else:
 trainProj = train_img.dot(V[:50,:].T)
 testProj = test_img.dot(V[:50,:].T)
 # Note: to get true projection, do trainProj.dot(V[:50,:])
-
-# Estimate a good value of sigma for RBFVec using the median trick
-# N = trainProj.shape[0]
-# numSamples = 100
-# dists = 0.
-# inds = np.empty(2)
-# for k in range(0,numSamples):
-# 	inds = np.random.choice(np.arange(0,N),2,replace=False)	# Get a random pair of data points
-# 	dists += np.sqrt(np.sum((trainProj[inds[0],:] - trainProj[inds[1],:])**2))
-
-# # Cheat a little and use the empirical mean distance between points
-# dists /= numSamples
 
 # Generate or load random vectors for features
 if os.path.isfile("feats.npy"):
@@ -385,7 +333,7 @@ plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
 plt.show()
 
 # Print out final 0/1 and log loss
-print "Log loss (training): %f" % (logLossTrainAvg[-1])
-print "0/1 loss (training): %f" % (z1LossTrainAvg[-1])
-print "Log loss (test): %f" % (logLossTestAvg[-1])
-print "0/1 loss (test): %f" % (z1LossTestAvg[-1])
+print "Log loss (training): %f" % (logLossTrain[-1])
+print "0/1 loss (training): %f" % (z1LossTrain[-1])
+print "Log loss (test): %f" % (logLossTest[-1])
+print "0/1 loss (test): %f" % (z1LossTest[-1])
