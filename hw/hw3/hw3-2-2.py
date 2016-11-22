@@ -341,9 +341,6 @@ plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
 plt.figure(2)
 plt.plot(its[1:],z1LossTrain[1:],'b-o',its[1:],z1LossTrainAvg[1:],'k--o',
 	its[1:],z1LossTest[1:],'r-x',its[1:],z1LossTestAvg[1:],'g--x',linewidth=1.5)
-
-plt.plot(its[1:6],z1LossTrain[1:6],'b-o',its[1:6],z1LossTrainAvg[1:6],'k--o',
-	its[1:6],z1LossTest[1:6],'r-x',its[1:6],z1LossTestAvg[1:6],'g--x',linewidth=1.5)
 plt.xlabel('Iteration')
 plt.ylabel('0/1 loss')
 plt.legend(['Training (w)','Training (wAvg)','Test (w)', 'Test (wAvg)'])
