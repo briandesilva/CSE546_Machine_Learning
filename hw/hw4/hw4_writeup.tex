@@ -1,0 +1,229 @@
+\documentclass{article}
+
+\usepackage{fancyhdr}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{caption,subcaption}
+\usepackage{subfig}
+\usepackage{enumerate}          % For enumerates indexed by letters
+\usepackage{bm}                 % For bold letters
+\usepackage{algorithm2e}        % For pseudocode
+% \usepackage{bbold}              % For indicator function
+
+%
+% Basic Document Settings
+%
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+\pagestyle{fancy}
+\lhead{\hmwkAuthorName}
+\chead{\hmwkClass:\ \hmwkTitle}
+\rhead{\firstxmark}
+\lfoot{\lastxmark}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\setlength\parindent{0pt}
+
+\setcounter{section}{-1}
+
+
+
+
+%
+% Homework Details
+%   - Title
+%   - Due date
+%   - Class
+%   - Section/Time
+%   - Instructor
+%   - Author
+%
+
+\newcommand{\hmwkTitle}{Homework 4}
+\newcommand{\hmwkDueDate}{December 12, 2016}
+\newcommand{\hmwkClass}{CSE 546}
+\newcommand{\hmwkAuthorName}{Brian de Silva}
+
+%
+% Title Page
+%
+
+\title{
+    \vspace{2in}
+    \textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+    \normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate\ }\\
+    \vspace{3in}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+\date{}
+
+
+% Useful commands
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Bias}{\mathrm{Bias}}
+\newcommand{\bbm}{\begin{bmatrix}}
+\newcommand{\ebm}{\end{bmatrix}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\y}{\hat \bm{y}}
+\newcommand{\yi}{\hat \bm{y_i}}
+\newcommand{\X}{\bm{X}}
+\newcommand{\w}{\bm{w}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\Tr}{\mathrm{Tr}}
+
+
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+% Problem 0
+\section{Collaborators and Acknowledgements}
+
+
+% Problem 1
+\section{Manual Calculation of one round of EM for a GMM}
+Let $x=\bbm 1&10&20\ebm$ be the set of 1-D data points we are given.
+
+\subsection{M step}
+Suppose the output from the E step is the following matrix
+\[
+    R = \bbm 1 & 0 \\ 0.4 &0.6 \\ 0 & 1 \ebm
+\]
+where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to cluster $c$.
+\begin{enumerate}
+    \item We are trying to maximize***
+    \begin{align*}
+        &\mathbb{E}_{z\sim Pr(z|x,\Theta^{(t-1)})}\left[\log Pr(\mathbb{X},Z|\Theta) \right]=\\
+        &\mathbb{E}_{z\sim Pr(z|x,\Theta^{(t-1)})}\left[\log \prod_{k=1}^2\left(\pi_k Pr(x|\Theta_k) \right)^{\mathbb{I}(z=k)} \right]
+    \end{align*}
+    over the parameters associated with each class, collected in $\Theta_k$. 
+    \item Let $R_k = \sum_i R_{i,k}$. Then for $k=1,2$
+    \[
+        \pi_k = \frac13\sum^3_{i=1}R_{i,k} = R_k / 3.
+    \]
+    Hence
+    \begin{align*}
+        \pi_1 &= \frac13(1+0.4)=\frac{7}{15},\\
+        \pi_2 &= \frac13(0+1) = \frac{8}{15}.
+    \end{align*}
+    \item Recall that for $k=1,2$ the means are given by
+    \[
+        \mu_k = \frac{\sum_{i=1}^3R_{i,k}x_i}{R_k}
+    \]
+    with $R_1=\tfrac{7}{5}$ and $R_2=\tfrac{8}{5}$. Hence
+    \begin{align*}
+        \mu_1 &= \frac{1\cdot 1+0.4\cdot10}{7/5} = \frac{25}{7},\\
+        \mu_2 &= \frac{0.6\cdot10+1\cdot20}{8/5} = \frac{65}{4}.
+    \end{align*}
+    \item Recall that for $k=1,2$, the standard deviations $\sigma_k$ are
+    \[
+        \sigma_k=\frac{\sum_{i=1}^3R_{i,k}x_i^2}{R_k} - \mu_k^2.
+    \]
+    Therefore
+    \begin{align*}
+        \sigma_1 &= \sqrt{\frac{1\cdot 1 + 0.4\cdot100}{7/5} -\left(\frac{25}{7}\right)^2} = \sqrt{\frac{810}{49}},\\
+        \sigma_2 &= \sqrt{\frac{0.6\cdot 100+1\cdot400}{8/5}-\left(\frac{65}{4}\right)^2} = \sqrt{\frac{375}{16}}.
+    \end{align*}
+\end{enumerate}
+
+\subsection{E step}
+\begin{enumerate}
+    \item ***
+    \[
+        Pr(z_i=c)=R_{i,c} = \frac{\pi^{(t-1)}_cPr\left(x_i\left|\Theta^{(t-1)}_c\right.\right)}{\sum^2_{c'=1}\pi_{c'}Pr\left(x_i\left|\Theta_{c'}^{(t-1)}\right.\right)},
+    \]
+    where
+    \[
+        Pr\left(x_i\left|\Theta^{(t-1)}_c\right.\right) = \frac{\pi_c^{(t-1)}}{\sqrt{2\pi}\sigma_c^{(t-1)}}exp\left(-\left(x_i-\mu_c^{(t-1)}\right)^2\left/2\left(\sigma^{(t-1)}_c\right)^2\right.\right).
+    \]
+    \item Substituting in the values $\Theta^{(t-1)}$ we obtained in the M step into the above formula, we obtain
+    \begin{align*}
+        Pr\left(1\left|\Theta^{(t-1)}_1\right.\right)&\approx 0.0374898 \\
+        Pr\left(1\left|\Theta^{(t-1)}_2\right.\right)&\approx 0.000307803\\
+        Pr\left(1\left|\Theta^{(t-1)}_1\right.\right)+Pr\left(1\left|\Theta^{(t-1)}_2\right.\right)&\approx  0.0377976\\
+        &\implies R_{1,1}\approx 0.991857,~~R_{1,2}\approx 0.00814346.
+    \end{align*}
+    \begin{align*}
+        Pr\left(10\left|\Theta^{(t-1)}_1\right.\right)&\approx 0.0131191 \\
+        Pr\left(10\left|\Theta^{(t-1)}_2\right.\right)&\approx  0.0191003\\
+        Pr\left(10\left|\Theta^{(t-1)}_1\right.\right)+Pr\left(10\left|\Theta^{(t-1)}_2\right.\right)&\approx  0.0322194\\
+        &\implies R_{2,1}\approx 0.40718,~~R_{2,2}\approx 0.59282.
+    \end{align*}
+    \begin{align*}
+        Pr\left(20\left|\Theta^{(t-1)}_1\right.\right)&\approx  0.0000130429\\
+        Pr\left(20\left|\Theta^{(t-1)}_2\right.\right)&\approx 0.0325585 \\
+        Pr\left(20\left|\Theta^{(t-1)}_1\right.\right)+Pr\left(20\left|\Theta^{(t-1)}_2\right.\right)&\approx 0.0325716\\
+        &\implies R_{3,1}\approx 0.000400438 ,~~R_{3,2}\approx 0.9996.
+    \end{align*}
+    Putting this all together, the new value of $R$ is 
+    \[
+        R=\bbm 0.991857 & 0.00814346 \\
+        0.40718 & 0.59282 \\
+        0.000400438 & 0.9996
+        \ebm.
+    \]
+\end{enumerate}
+
+% Problem 2
+\section{Neural Nets and Backprop}
+\subsection{With tanh hidden units}
+
+\subsection{With ReLu hidden units}
+
+\subsection{With ReLu hidden units and ReLu output units}
+
+
+% Problem 3
+\section{EM vs. Gradient Descent}
+
+
+% Problem 4
+\section{Markov Decision Processes and Dynamic Programming}
+\begin{enumerate}
+    \item Note that $\sum_{x'}Pr(x'|x,a) = 1$.
+    For any two value functions $V_1,~V_2$, we have
+    \begin{align*}
+        \|Bell(V_1)-Bell(V_2)\|_{\infty} &= \max_s\left|\tilde V_1(s)-\tilde V_2(s)\right|\\
+        &= \max_s\left|\max_a\left(R(s,a) +\gamma\sum_{x'}Pr(x'|s,a)V_1(x')\right)\right.\\&\quad\left.-\max_b\left(R(s,b) +\gamma\sum_{x'}Pr(x'|s,b)V_2(x')\right) \right| \\
+        &\leq \max_s\left| \max_a\left(\gamma\sum_{x'}Pr(x'|s,a)V_1(x')-\gamma\sum_{x'}Pr(x'|s,b)V_2(x')\right)\right|\\
+        &= \max_s\left|\gamma\max_a\left(\sum_{x'}Pr(x'|s,a)\left(V_1(x')-V_2(x')\right)\right)\right|\\
+        &\leq \max_s\left|\gamma\max_a\left( \sum_{x'}Pr(x'|s,a)\max_{x}(V_1(x)-V_2(x))\right) \right|\\
+        &= \gamma \max_s\left|\max_x(V_1(x)-V_2(x)) \max_a\left(\sum_{x'}Pr(x'|s,a)\right) \right|\\
+        &= \gamma \left|\max_x(V_1(x)-V_2(x)) \right| \\
+        &=\gamma \max_x\left|V_1(x)-V_2(x)\right|\\
+        &= \gamma \|V_1-V_2\|_{\infty}.
+    \end{align*}
+    Thus the Bellman operator is a contraction mapping.
+    \item Let $V$ be a fixed point of the Bellman operator, so that $Bell(V)=V$. Suppose $U$ is also a fixed point of the Bellman operator. Then by the above
+    \[
+        \|U-V\|_{\infty} = \|Bell(U)-Bell(V)\|_{\infty}\leq \gamma \|U-V\|_{\infty}.
+    \]
+    This implies that $(1-\gamma)\|U-V\|_{\infty}\leq0$. But $1-\gamma>0$ by assumption, so the only way that this can be true is if $\|U-V\|_{\infty}=0$. So we must have
+    \[
+        \|U-V\|_{\infty}=\max_s\|U(s)-V(s)\|=0,
+    \]
+    from which it follows that $U=V$. Hence $V$ must be unique.
+\end{enumerate}
+
+\end{document}
+
