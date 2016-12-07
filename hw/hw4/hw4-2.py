@@ -25,7 +25,58 @@ train_label = np.array(train_label,dtype=int)
 test_img = np.array(test_img)
 test_label = np.array(test_label,dtype=int)
 
+numClasses = 10
 
+# ----------------------------------------------------------------------------------------
+# 							Function defintions
+# ----------------------------------------------------------------------------------------
+
+
+# Neural network class with tanh activation functions
+class NN:
+	# Constructor where weights are pre-specified
+	def __init__(self,W_i,W_h):
+		self.W_i = W_i			# Input weights
+		self.W_h = W_h			# Hidden layer weights
+
+	# Constructor where only size of network is specified in a tuple
+	# n = (input dim, # hidden nodes, numClasses)
+	def __init__(self,n):
+		self.W_i = np.random.randn(n[1],n[0]) / np.sqrt(n[0])
+		self.W_h = np.random.randn(n[2],n[1]) / n[0]
+
+
+	# Generates output from one forward pass through the neural net
+	# Data should be contained in COLUMNS of x
+	def forwardPass(self,x):
+		self.hs = np.tanh(self.W_i.dot(x))		# Input activation
+		self.ys = self.W_h.dot(hs)				# Output activation
+
+		# # Compute softmax probabilities
+		# k = self.W_h.shape[0]+1					# Number of classes
+		# probs = np.empty((k,x.shape[1]))
+		
+		# # Precompute some quantities
+		# ex = np.exp(self.ys)
+		# denom = -np.log(1 + np.sum(ex,0))
+
+		# # Compute all the probabilities
+		# probs[0,:] = np.exp(denom)
+		# for j in range(1,k):
+		# 	probs[j,:] = np.exp(self.ys[j-1,:] + denom)
+		# return probs
+
+
+
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------------------
 
 # Compute SVD
 if os.path.isfile("U.npy"):
