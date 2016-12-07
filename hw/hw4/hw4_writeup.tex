@@ -12,7 +12,9 @@
 \usepackage{enumerate}          % For enumerates indexed by letters
 \usepackage{bm}                 % For bold letters
 \usepackage{algorithm2e}        % For pseudocode
+% \usepackage{hyperref}                % For urls
 % \usepackage{bbold}              % For indicator function
+
 
 %
 % Basic Document Settings
@@ -82,12 +84,8 @@
 \newcommand{\bbm}{\begin{bmatrix}}
 \newcommand{\ebm}{\end{bmatrix}}
 \newcommand{\R}{\mathbb{R}}
-\newcommand{\y}{\hat \bm{y}}
-\newcommand{\yi}{\hat \bm{y_i}}
-\newcommand{\X}{\bm{X}}
-\newcommand{\w}{\bm{w}}
-\newcommand{\T}{\mathcal{T}}
-\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\X}{\mathbb{X}}
+\newcommand{\Z}{\mathbb{Z}}
 
 
 \begin{document}
@@ -98,7 +96,12 @@
 
 % Problem 0
 \section{Collaborators and Acknowledgements}
+% I read the post at \url{http://ufldl.stanford.edu/tutorial/supervised/MultiLayerNeuralNetworks/} when working problem two.
 
+I collaborated with the following people
+\begin{itemize}
+    \item Kathleen Champion: problem three
+\end{itemize}
 
 % Problem 1
 \section{Manual Calculation of one round of EM for a GMM}
@@ -111,12 +114,17 @@ Suppose the output from the E step is the following matrix
 \]
 where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to cluster $c$.
 \begin{enumerate}
-    \item We are trying to maximize***
+    \item We are trying to maximize
     \begin{align*}
-        &\mathbb{E}_{z\sim Pr(z|x,\Theta^{(t-1)})}\left[\log Pr(\mathbb{X},Z|\Theta) \right]=\\
-        &\mathbb{E}_{z\sim Pr(z|x,\Theta^{(t-1)})}\left[\log \prod_{k=1}^2\left(\pi_k Pr(x|\Theta_k) \right)^{\mathbb{I}(z=k)} \right]
+        \mathbb{E}[\log Pr(\mathbb{X},\Z|\Theta)] &=\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[\log Pr(\X,\Z|\Theta) \right]\\
+        &=\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[\log \sum_i\left(Pr(x_i,z_i|\Theta) \right) \right]\\
+        &=\sum_i\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[ \log Pr(x_i,z_i|\Theta)\right]\\
+        &=\sum_i\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[\log\left[\prod_{c} \pi_cPr(x_i|\Theta_c))^{\mathbb{I}(z_i=c)}\right]\right] \\ 
+        &= \sum_i\sum_{c}\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}[\mathbb{I}(z_i=c)]\log(\pi_c Pr(x_i,\Theta_c))\\
+        &=\sum_i\sum_cPr(z_i=c|x_i,\Theta^{(t-1)})\log(\pi_cPr(x_i|\Theta_c))\\
+        &= \sum_i\sum_cR_{ic}(\log\pi_c + \log Pr(x_i|\Theta_c))
     \end{align*}
-    over the parameters associated with each class, collected in $\Theta_k$. 
+    over the parameters associated with each class, collected in $\Theta_c$. 
     \item Let $R_k = \sum_i R_{i,k}$. Then for $k=1,2$
     \[
         \pi_k = \frac13\sum^3_{i=1}R_{i,k} = R_k / 3.
@@ -148,7 +156,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
 
 \subsection{E step}
 \begin{enumerate}
-    \item ***
+    \item 
     \[
         Pr(z_i=c)=R_{i,c} = \frac{\pi^{(t-1)}_cPr\left(x_i\left|\Theta^{(t-1)}_c\right.\right)}{\sum^2_{c'=1}\pi_{c'}Pr\left(x_i\left|\Theta_{c'}^{(t-1)}\right.\right)},
     \]
