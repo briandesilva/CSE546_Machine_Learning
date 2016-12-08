@@ -145,7 +145,7 @@ ckptStr = "init_test2.1"	# String used in checkpointing filename
 ckptFreq = numEpochs
 numLargeSteps = 10
 
-print "Time elapsed during setup: %f" %(time.time() - t1)
+print "Time elapsed during setup:\t\t %f" %(time.time() - t1)
 # --------------------------------------------------------------------------
 
 
@@ -162,7 +162,7 @@ nn.forwardPass(trainProj.T)
 # Rescale the weights so that E(Yhat) ~ E(Y) / 10
 # Note: E(Y) = 1/10
 nn.W_h /= (100*np.mean(nn.oa))
-# nn.W_i /= (100*np.mean(nn.oa))
+nn.W_i /= (100*np.mean(nn.oa))
 
 
 # Create vectors in which to store the loss
@@ -189,7 +189,7 @@ for it in range(numEpochs):
 	testLoss[:,2*it] = nn.getLoss(testProj.T,testBinLabels)
 
 	# Print losses
-	print "Square loss after %d epochs:\\t %f"%(it,trainLoss[0,2*it])
+	print "Square loss after %d epochs:\t\t %f"%(it,trainLoss[0,2*it])
 	print "0/1 loss after %d epochs:\t\t %f\n"%(it,trainLoss[1,2*it])
 
 	# Check the norms of the gradients
@@ -232,7 +232,7 @@ for it in range(numEpochs):
 
 
 	# Output elapsed time
-	print "Time elapsed during epoch %d:\\t %f"%(it, time.time() - t2)
+	print "Time elapsed during epoch %d:\t\t %f"%(it, time.time() - t2)
 	print "-----------------------------------------------------------------------\n\n"
 
 	# Check if we need to checkpoint

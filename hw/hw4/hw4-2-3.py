@@ -1,5 +1,5 @@
 # CSE 546 Homework 4
-# Problem 2.3: Neural Nets and Backprop (ReLu hidden units and output layer)
+# Problem 2.2: Neural Nets and Backprop (ReLu hidden units)
 
 # Brian de Silva
 # 1422824
@@ -32,7 +32,7 @@ numClasses = 10
 # ----------------------------------------------------------------------------------------
 
 
-# Neural network class using ReLu activation function at hidden layer and ReLu output layer
+# Neural network class using ReLu activation function at hidden layer
 class NN:
 	# Constructor
 	# 
@@ -138,9 +138,9 @@ for k in range(test_label.shape[0]):
 nClasses = 10			# Number of classes
 reg = 0.				# Regularization parameter
 batchSize = 10			# Batch size for SGD
-numEpochs = 10			# Number of epochs to go through before terminating
+numEpochs = 30			# Number of epochs to go through before terminating
 nnSize = (50,500,10)	# Number of nodes in each layer of NN (input, hidden, output)
-step = 1.e-3			# Learning rate
+step = 1.e-3/2			# Learning rate
 std = (np.sqrt(np.mean(trainProj**2)),np.sqrt(50))	# Initial weight standard deviations
 ckptStr = "init_test2.1"	# String used in checkpointing filename
 ckptFreq = numEpochs
@@ -162,8 +162,8 @@ nn.forwardPass(trainProj.T)
 
 # Rescale the weights so that E(Yhat) ~ E(Y) / 10
 # Note: E(Y) = 1/10
-nn.W_h /= (100*np.mean(np.abs(nn.oa)))
-# nn.W_i /= (100*np.mean(nn.oa))
+nn.W_h /= (100*np.mean(nn.oa))
+nn.W_i /= (100*np.mean(nn.oa))
 
 
 # Create vectors in which to store the loss
@@ -213,7 +213,7 @@ for it in range(numEpochs):
 	# Compute and print losses after half an epoch
 	trainLoss[:,2*it+1] = nn.getLoss(trainProj.T,trainBinLabels)
 	testLoss[:,2*it+1] = nn.getLoss(testProj.T,testBinLabels)
-	print "Square loss after %d 1/2 epochs:\t\t %f"%(it,trainLoss[0,2*it+1])
+	print "Square loss after %d 1/2 epochs:\t %f"%(it,trainLoss[0,2*it+1])
 	print "0/1 loss after %d 1/2 epochs:\t\t %f\n"%(it,trainLoss[1,2*it+1])
 
 	# Check the norms of the gradients
