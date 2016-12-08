@@ -1,5 +1,5 @@
 # CSE 546 Homework 4
-# Problem 2.1: Neural Nets and Backprop (tanh hidden units)
+# Problem 2.2: Neural Nets and Backprop (ReLu hidden units)
 
 # Brian de Silva
 # 1422824
@@ -32,7 +32,7 @@ numClasses = 10
 # ----------------------------------------------------------------------------------------
 
 
-# Neural network class using tanh activation function at hidden layer
+# Neural network class using ReLu activation function at hidden layer
 class NN:
 	# Constructor
 	# 
@@ -47,36 +47,12 @@ class NN:
 		self.W_i = np.random.randn(n[1],n[0]) / scaleFact[0]
 		self.W_h = np.random.randn(n[2],n[1]) / scaleFact[1]
 
-
 	# Generates output from one forward pass through the neural net
 	# Data should be contained in COLUMNS of X
 	def forwardPass(self,X):
 		self.hz = self.W_i.dot(X)				# Hidden layer input
-		self.ha = np.tanh(self.hz)				# Hidden layer activation
+		self.ha = np.maximum(self.hz,0)			# Hidden layer activation
 		self.oa = self.W_h.dot(self.ha)			# Output layer activation
-
-		# # Compute softmax probabilities
-		# k = self.W_h.shape[0]+1					# Number of classes
-		# probs = np.empty((k,X.shape[1]))
-		
-		# # Precompute some quantities
-		# ex = np.exp(self.ys)
-		# denom = -np.log(1 + np.sum(ex,0))
-
-		# # Compute all the probabilities
-		# probs[0,:] = np.exp(denom)
-		# for j in range(1,k):
-		# 	probs[j,:] = np.exp(self.ys[j-1,:] + denom)
-		# return probs
-
-	# # Computes the gradient of the square loss wrt the weights in the NN
-	# # Y should be a matrix with each column a length 10 one-hot vector of class labels
-	# # Y should have already been sampled
-	# def backPropPartial(self,X,Y,sampleIndices):
-	# 	dW_h = -(Y - self.oa[:,sampleIndices])       				# note: activation function is identity
-	# 	dW_i = self.W_h.T.dot(dW_h) * (1 - (self.ha[:,sampleIndices]) ** 2)		# Sech^2(x) = 1 - Tanh^2(x)
-	# 	return (dW_h.dot(self.ha[:,sampleIndices].T),dW_i.dot(X.T))
-
 
 	# Computes the gradient of the square loss wrt the weights in the NN
 	# Y should be a matrix with each column a length 10 one-hot vector of class labels
@@ -84,7 +60,7 @@ class NN:
 	def backProp(self,X,Y,steps):
 		N = X.shape[1]
 		dW_h = -(Y - self.oa)     				# note: activation function is identity
-		dW_i = self.W_h.T.dot(dW_h) * (1 - (self.ha) ** 2)		# Sech^2(x) = 1 - Tanh^2(x)
+		dW_i = self.W_h.T.dot(dW_h) * (self.hz > 0).astype(float)
 		self.W_h -= steps[1] * dW_h.dot(self.ha.T) / N
 		self.W_i -= steps[0] * dW_i.dot(X.T) / N
 
@@ -93,7 +69,7 @@ class NN:
 		self.forwardPass(X)
 		N = X.shape[1]
 		dW_h = -(Y - self.oa)      				# note: activation function is identity
-		dW_i = self.W_h.T.dot(dW_h) * (1 - (self.ha) ** 2)		# Sech^2(x) = 1 - Tanh^2(x)
+		dW_i = self.W_h.T.dot(dW_h) * (self.hz > 0).astype(float)
 		return (dW_i.dot(X.T) / N, dW_h.dot(self.ha.T) / N)
 
 
@@ -186,7 +162,7 @@ nn.forwardPass(trainProj.T)
 # Rescale the weights so that E(Yhat) ~ E(Y) / 10
 # Note: E(Y) = 1/10
 nn.W_h /= (100*np.mean(nn.oa))
-nn.W_i /= (100*np.mean(nn.oa))
+# nn.W_i /= (100*np.mean(nn.oa))
 
 
 # Create vectors in which to store the loss
@@ -213,7 +189,7 @@ for it in range(numEpochs):
 	testLoss[:,2*it] = nn.getLoss(testProj.T,testBinLabels)
 
 	# Print losses
-	print "Square loss after %d epochs:\t\t %f"%(it,trainLoss[0,2*it])
+	print "Square loss after %d epochs:\\t %f"%(it,trainLoss[0,2*it])
 	print "0/1 loss after %d epochs:\t\t %f\n"%(it,trainLoss[1,2*it])
 
 	# Check the norms of the gradients
@@ -256,7 +232,7 @@ for it in range(numEpochs):
 
 
 	# Output elapsed time
-	print "Time elapsed during epoch %d:\t\t %f"%(it, time.time() - t2)
+	print "Time elapsed during epoch %d:\\t %f"%(it, time.time() - t2)
 	print "-----------------------------------------------------------------------\n\n"
 
 	# Check if we need to checkpoint
