@@ -86,6 +86,7 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\X}{\mathbb{X}}
 \newcommand{\Z}{\mathbb{Z}}
+\DeclareMathOperator*{\argmax}{arg\,max}
 
 
 \begin{document}
@@ -100,7 +101,8 @@
 
 I collaborated with the following people
 \begin{itemize}
-    \item Kathleen Champion: problem three
+    \item Kathleen Champion: problems two and three
+    \item Scott Moe: problem three
 \end{itemize}
 
 % Problem 1
@@ -116,15 +118,15 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
 \begin{enumerate}
     \item We are trying to maximize
     \begin{align*}
-        \mathbb{E}[\log Pr(\mathbb{X},\Z|\Theta)] &=\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[\log Pr(\X,\Z|\Theta) \right]\\
-        &=\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[\log \sum_i\left(Pr(x_i,z_i|\Theta) \right) \right]\\
-        &=\sum_i\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[ \log Pr(x_i,z_i|\Theta)\right]\\
-        &=\sum_i\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}\left[\log\left[\prod_{c} \pi_cPr(x_i|\Theta_c))^{\mathbb{I}(z_i=c)}\right]\right] \\ 
-        &= \sum_i\sum_{c}\mathbb{E}_{\Z\sim Pr(\Z|\X,\Theta^{(t-1)})}[\mathbb{I}(z_i=c)]\log(\pi_c Pr(x_i,\Theta_c))\\
-        &=\sum_i\sum_cPr(z_i=c|x_i,\Theta^{(t-1)})\log(\pi_cPr(x_i|\Theta_c))\\
-        &= \sum_i\sum_cR_{ic}(\log\pi_c + \log Pr(x_i|\Theta_c))
+        \mathbb{E}[\log Pr(\mathbb{X},\Z|\theta)] &=\mathbb{E}_{\Z\sim Pr(\Z|\X,\theta^{(t-1)})}\left[\log Pr(\X,\Z|\theta) \right]\\
+        &=\mathbb{E}_{\Z\sim Pr(\Z|\X,\theta^{(t-1)})}\left[\log \sum_i\left(Pr(x_i,z_i|\theta) \right) \right]\\
+        &=\sum_i\mathbb{E}_{\Z\sim Pr(\Z|\X,\theta^{(t-1)})}\left[ \log Pr(x_i,z_i|\theta)\right]\\
+        &=\sum_i\mathbb{E}_{\Z\sim Pr(\Z|\X,\theta^{(t-1)})}\left[\log\left[\prod_{c} \pi_cPr(x_i|\theta_c))^{\mathbb{I}(z_i=c)}\right]\right] \\ 
+        &= \sum_i\sum_{c}\mathbb{E}_{\Z\sim Pr(\Z|\X,\theta^{(t-1)})}[\mathbb{I}(z_i=c)]\log(\pi_c Pr(x_i,\theta_c))\\
+        &=\sum_i\sum_cPr(z_i=c|x_i,\theta^{(t-1)})\log(\pi_cPr(x_i|\theta_c))\\
+        &= \sum_i\sum_cR_{ic}(\log\pi_c + \log Pr(x_i|\theta_c))
     \end{align*}
-    over the parameters associated with each class, collected in $\Theta_c$. 
+    over the parameters associated with each class, collected in $\theta_c$. 
     \item Let $R_k = \sum_i R_{i,k}$. Then for $k=1,2$
     \[
         \pi_k = \frac13\sum^3_{i=1}R_{i,k} = R_k / 3.
@@ -158,29 +160,29 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
 \begin{enumerate}
     \item 
     \[
-        Pr(z_i=c)=R_{i,c} = \frac{\pi^{(t-1)}_cPr\left(x_i\left|\Theta^{(t-1)}_c\right.\right)}{\sum^2_{c'=1}\pi_{c'}Pr\left(x_i\left|\Theta_{c'}^{(t-1)}\right.\right)},
+        Pr(z_i=c)=R_{i,c} = \frac{\pi^{(t-1)}_cPr\left(x_i\left|\theta^{(t-1)}_c\right.\right)}{\sum^2_{c'=1}\pi_{c'}Pr\left(x_i\left|\theta_{c'}^{(t-1)}\right.\right)},
     \]
     where
     \[
-        Pr\left(x_i\left|\Theta^{(t-1)}_c\right.\right) = \frac{\pi_c^{(t-1)}}{\sqrt{2\pi}\sigma_c^{(t-1)}}exp\left(-\left(x_i-\mu_c^{(t-1)}\right)^2\left/2\left(\sigma^{(t-1)}_c\right)^2\right.\right).
+        Pr\left(x_i\left|\theta^{(t-1)}_c\right.\right) = \frac{\pi_c^{(t-1)}}{\sqrt{2\pi}\sigma_c^{(t-1)}}exp\left(-\left(x_i-\mu_c^{(t-1)}\right)^2\left/2\left(\sigma^{(t-1)}_c\right)^2\right.\right).
     \]
-    \item Substituting in the values $\Theta^{(t-1)}$ we obtained in the M step into the above formula, we obtain
+    \item Substituting in the values $\theta^{(t-1)}$ we obtained in the M step into the above formula, we obtain
     \begin{align*}
-        Pr\left(1\left|\Theta^{(t-1)}_1\right.\right)&\approx 0.0374898 \\
-        Pr\left(1\left|\Theta^{(t-1)}_2\right.\right)&\approx 0.000307803\\
-        Pr\left(1\left|\Theta^{(t-1)}_1\right.\right)+Pr\left(1\left|\Theta^{(t-1)}_2\right.\right)&\approx  0.0377976\\
+        Pr\left(1\left|\theta^{(t-1)}_1\right.\right)&\approx 0.0374898 \\
+        Pr\left(1\left|\theta^{(t-1)}_2\right.\right)&\approx 0.000307803\\
+        Pr\left(1\left|\theta^{(t-1)}_1\right.\right)+Pr\left(1\left|\theta^{(t-1)}_2\right.\right)&\approx  0.0377976\\
         &\implies R_{1,1}\approx 0.991857,~~R_{1,2}\approx 0.00814346.
     \end{align*}
     \begin{align*}
-        Pr\left(10\left|\Theta^{(t-1)}_1\right.\right)&\approx 0.0131191 \\
-        Pr\left(10\left|\Theta^{(t-1)}_2\right.\right)&\approx  0.0191003\\
-        Pr\left(10\left|\Theta^{(t-1)}_1\right.\right)+Pr\left(10\left|\Theta^{(t-1)}_2\right.\right)&\approx  0.0322194\\
+        Pr\left(10\left|\theta^{(t-1)}_1\right.\right)&\approx 0.0131191 \\
+        Pr\left(10\left|\theta^{(t-1)}_2\right.\right)&\approx  0.0191003\\
+        Pr\left(10\left|\theta^{(t-1)}_1\right.\right)+Pr\left(10\left|\theta^{(t-1)}_2\right.\right)&\approx  0.0322194\\
         &\implies R_{2,1}\approx 0.40718,~~R_{2,2}\approx 0.59282.
     \end{align*}
     \begin{align*}
-        Pr\left(20\left|\Theta^{(t-1)}_1\right.\right)&\approx  0.0000130429\\
-        Pr\left(20\left|\Theta^{(t-1)}_2\right.\right)&\approx 0.0325585 \\
-        Pr\left(20\left|\Theta^{(t-1)}_1\right.\right)+Pr\left(20\left|\Theta^{(t-1)}_2\right.\right)&\approx 0.0325716\\
+        Pr\left(20\left|\theta^{(t-1)}_1\right.\right)&\approx  0.0000130429\\
+        Pr\left(20\left|\theta^{(t-1)}_2\right.\right)&\approx 0.0325585 \\
+        Pr\left(20\left|\theta^{(t-1)}_1\right.\right)+Pr\left(20\left|\theta^{(t-1)}_2\right.\right)&\approx 0.0325716\\
         &\implies R_{3,1}\approx 0.000400438 ,~~R_{3,2}\approx 0.9996.
     \end{align*}
     Putting this all together, the new value of $R$ is 
@@ -195,12 +197,25 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
 % Problem 2
 \section{Neural Nets and Backprop}
 \subsection{With tanh hidden units}
+The code for this problem is in \texttt{hw4-2-1.py}.
 \begin{enumerate}
     \item We used the following parameter choices:
     \begin{itemize}
         \item Learning rate: I started with an initial learning rate of $10^{-3}$ which I reduced by a factor of $4$ every 10 epochs.
         \item Mini-batch size: 10.
-        \item Weight initalization: I initialized the weights for the input nodes by drawing each entry from a normal distribution with mean 0 and variance $1/E[\|X\|^2]$, where $X$ is the training data matrix. The weights for the hidden nodes were drawn from a normal distribution with mean 0 and variance $1/\sqrt{50}$ (where 50 is the number of input nodes). I then obtained the model's predictions $\hat Y$ and decreased the weights by a factor of $100E[\hat Y]$ to attempt to ensure that $E[\hat Y]\leq 0.1E[Y]$ for the next round of approximations generated by the method, $\hat Y$. Note that $E[Y]=0.1$ since the original labels are converted to one-hot vectors of length 10. The method was run for 30 epochs.
+        \item Weight initalization: I initialized the weights in steps. Let $W_i$ and $W_h$ denote the weights for the input layer and hidden layer, respectively. Then my initialization procedure was as follows
+        \begin{enumerate}
+            \item Set each entry of $W_i$ by sampling from a distribution $N(0,1/\mathbb{E}[\|X\|^2])$,where $X$ is the training data matrix.
+            \item Set each entry of $W_h$ by sampling from a distribution $N(0,1/\sqrt{n})$, where $n$ is the number of input nodes (50 in this case).
+            \item Perform one forward pass to obtain the model's predictions $\hat Y$ using the above weights.
+            \item Set 
+            \begin{align*}
+            W_i &\leftarrow W_i / (100 \mathbb{E}[\hat Y]),\\
+            W_h &\leftarrow W_h / (100 \mathbb{E}[\hat Y])
+            \end{align*}
+            to attempt to ensure that the expectation of the subsequent output is less than 0.1 times the expecation of the training labels, $Y$. In this case $Y$ consists of one-hot vectors of length 10 encoding the digit. Hence $\mathbb{E}[Y]=0.1$, which is why there is a factor of $1/100$ in the above.
+        \end{enumerate}
+        \item The method was run for 30 epochs.
         \item Other: No regularizations or offsets were used.
         
     \end{itemize}
@@ -211,7 +226,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
         \caption{The square loss on the training and test sets for a 2-layer neural network with $\tanh$ activation functions} 
         \label{fig:sqLoss_2-1}
     \end{figure}
-    Figure \ref{fig:sqLoss_2-1} shows the decay of the mean square error as a function of epochs. The error is plotted every half-epoch.
+    Figure \ref{fig:sqLoss_2-1} shows the decay of the mean square error as a function of epochs. The error is plotted at every half-epoch.
     \item
     \begin{figure}
         \centering
@@ -219,7 +234,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
         \caption{The 0/1 loss on the training and test sets for a 2-layer neural network with $\tanh$ activation functions} 
         \label{fig:z1Loss_2-1}
     \end{figure}
-    Figure \ref{fig:z1Loss_2-1} shows the decay of the 0/1 loss as a function of epochs. The error is plotted every half-epoch.
+    Figure \ref{fig:z1Loss_2-1} shows the decay of the 0/1 loss as a function of epochs. The error is plotted at every half-epoch.
     \item My final losses are summarized in the following table
 
     \begin{tabular}{l|ll}
@@ -239,6 +254,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
 \end{enumerate}
 
 \subsection{With ReLu hidden units}
+The code for this problem is in \texttt{hw4-2-2.py}.
 \begin{enumerate}
     \item We used the exact same parameter configuration and initialization procedure for this problem as in the previous one.
     \item
@@ -248,7 +264,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
         \caption{The square loss on the training and test sets for a 2-layer neural network with $\tanh$ activation functions} 
         \label{fig:sqLoss_2-2}
     \end{figure}
-    Figure \ref{fig:sqLoss_2-2} shows the decay of the mean square error as a function of epochs. The error is plotted every half-epoch.
+    Figure \ref{fig:sqLoss_2-2} shows the decay of the mean square error as a function of epochs. The error is plotted at every half-epoch.
     \item
     \begin{figure}
         \centering
@@ -256,7 +272,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
         \caption{The 0/1 loss on the training and test sets for a 2-layer neural network with $\tanh$ activation functions in the hidden layer} 
         \label{fig:z1Loss_2-2}
     \end{figure}
-    Figure \ref{fig:z1Loss_2-2} shows the decay of the 0/1 loss as a function of epochs. The error is plotted every half-epoch.
+    Figure \ref{fig:z1Loss_2-2} shows the decay of the 0/1 loss as a function of epochs. The error is plotted at every half-epoch.
     \item My final losses are summarized in the following table
 
     \begin{tabular}{l|ll}
@@ -282,6 +298,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
 % Test 0/1 loss after 30 epochs:       0.017300
 
 \subsection{With ReLu hidden units and ReLu output units}
+The code for this problem is in \texttt{hw4-2-3.py}.
 
     \begin{enumerate}
     \item We used the exact same parameter configuration and initialization procedure for this problem as in the previous one.
@@ -290,9 +307,9 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
         \centering
         \includegraphics[width=.85\textwidth]{sqLoss_2-3-30Ep}
         \caption{The square loss on the training and test sets for a 2-layer neural network with ReLu activation functions in the hidden and output layers} 
-        \label{fig:sqLoss_2-2}
+        \label{fig:sqLoss_2-3}
     \end{figure}
-    Figure \ref{fig:sqLoss_2-2} shows the decay of the mean square error as a function of epochs. The error is plotted every half-epoch.
+    Figure \ref{fig:sqLoss_2-3} shows the decay of the mean square error as a function of epochs. The error is plotted at every half-epoch.
     \item
     \begin{figure}
         \centering
@@ -300,7 +317,7 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
         \caption{The 0/1 loss on the training and test sets for a 2-layer neural network with ReLu activation functions in the hidden and output layers} 
         \label{fig:z1Loss_2-3}
     \end{figure}
-    Figure \ref{fig:z1Loss_2-3} shows the decay of the 0/1 loss as a function of epochs. The error is plotted every half-epoch.
+    Figure \ref{fig:z1Loss_2-3} shows the decay of the 0/1 loss as a function of epochs. The error is plotted at every half-epoch.
     \item My final losses are summarized in the following table
 
     \begin{tabular}{l|ll}
@@ -328,6 +345,46 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
 
 % Problem 3
 \section{EM vs. Gradient Descent}
+Let $L(\theta) = \log Pr(\X,\theta)$.
+\begin{enumerate}
+    \item The left-hand side can be expressed as
+    \[
+        \nabla L(\theta) = \nabla \log Pr(\X|\theta) = \frac{\nabla Pr(\X|\theta)}{Pr(\X|\theta)}.
+    \]
+    Note that $Pr(\X,\Z|\theta) = Pr(\Z|\X,\theta)Pr(\X|\theta)$. This allows us to write the right-hand-side as
+    \begin{align*}
+        \mathbb{E}_{\Z\sim Pr(\Z|\X,\theta)}\left[\nabla\log Pr(\X,\Z|\theta)\right] &= \mathbb{E}_{\Z\sim Pr(\Z|\X,\theta)}\left[\frac{\nabla Pr(\X,\Z|\theta)}{Pr(\X,\Z|\theta)}\right]\\
+        &= \mathbb{E}_{\Z\sim Pr(\Z|\X,\theta)}\left[\frac{\nabla Pr(\X,\Z|\theta)}{Pr(\Z|\X,\theta)P(\X|\theta)}\right]\\
+        &=\sum_Z Pr(Z|\X,\theta)\frac{\nabla Pr(\X,Z|\theta)}{Pr(Z|\X,\theta)Pr(\X|\theta)}\\
+        &=\frac{\sum_Z\nabla Pr(\X,Z|\theta)}{Pr(\X|\theta)}\\
+        &= \frac{\nabla Pr(\X|\theta)}{Pr(\X|\theta)}.
+    \end{align*}
+    From here it is easy to see that the two are equal.
+    \item Let $\theta^t$ denote the parameters Alice and Bob start with. Alice's update will be of the form
+    \[
+        \theta^{t+1} \leftarrow \theta^t + \eta \nabla L(\theta^t).
+    \]
+    During the E step Bob will use $\theta^t$ to compute $Pr(z_i=k|x_i\theta^t)$. Thus, using our previous result, we see that Bob's update step will be
+    \begin{align*}
+        \theta^{t+1} &= \theta^t + \eta \nabla\left.\mathbb{E}_{\Z\sim Pr(\Z|\X,\theta^t)}\left[\log Pr(\X,\Z|\theta)\right]\right|_{\theta=\theta^t}\\
+        &=\theta^t+\eta \nabla\left.\sum_ZPr(Z|\X,\theta^t)\log Pr(Z|\X,\theta)\right|_{\theta=\theta^t}\\
+        &=\theta^t+\eta\left.\sum_ZPr(Z|\X,\theta^t)\nabla\log Pr(Z|\X,\theta)\right|_{\theta=\theta^t}\\
+        &=\theta^t+\eta\left.\mathbb{E}_{\Z\sim Pr(\Z|\X,\theta^t)}\left[\nabla \log Pr(\X,\Z|\theta)\right]\right|_{\theta=\theta^t}\\
+        &=\theta^t + \eta \nabla L(\theta^t),
+    \end{align*}
+    which is the same as Alice's.
+
+    \item If you run the EM algorithm to convergence then you \textbf{do} reach a critical point of the likelihood function. To see this suppose that the EM algorithm converges to some $\hat \theta$, but this is not a critical point of the likelihood function, i.e. $\nabla L(\hat\theta)\neq0$. Since EM has converged, applying the M step to $\hat \theta$ just gives back $\hat\theta$:
+    \[
+        \hat \theta = \argmax_\theta \mathbb{E}_{\Z\sim Pr(\Z|\X,\hat\theta)}[\log Pr(\X,\Z|\theta)].
+    \]
+    But if $\nabla L(\hat\theta)\neq0$, then we can use a gradient step (with a small enough learning rate $\eta$) to find a $\tilde\theta$ that beats $\hat \theta$:
+    \begin{align*}
+        \tilde\theta &= \hat\theta + \eta\nabla (\left.\mathbb{E}_{\Z\sim Pr(\Z|\X,\hat\theta)}[\log Pr(\X,\Z|\theta)])\right|_{\theta=\hat\theta}\\
+        &=\hat\theta + \eta\nabla L(\hat\theta).
+    \end{align*}
+    This contradicts the way $\hat\theta$ is chosen (as an argmax), so we must have the $\nabla L(\hat\theta)=0$.
+\end{enumerate}
 
 
 % Problem 4
@@ -356,6 +413,14 @@ where entry $R_{i,c}$ is the probability of observation $x_i$ belonging to clust
         \|U-V\|_{\infty}=\max_s\|U(s)-V(s)\|=0,
     \]
     from which it follows that $U=V$. Hence $V$ must be unique.
+    \item If we find a $V$ such that $Bell(V)=V$, then $V$ is the optimal value function and we can determine the optimal policy $\Pi(x)$ which specifies the action to be taken in state $x$. First we evaluate $V(x)$. Then we know that the optimal action to be taken, $a$ maximizes
+    \[
+        \max_a\left(R(s,a) +\gamma\sum_{x'}Pr(x'|s,a)V(x')\right),
+    \]
+    where $V$ is \textit{known}. Hence we can just select this $a$ as our action, i.e.
+    \[
+        \Pi(x) = \argmax_a\left(R(s,a) +\gamma\sum_{x'}Pr(x'|s,a)V(x')\right)
+    \]
 \end{enumerate}
 
 \end{document}
